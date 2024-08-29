@@ -28,7 +28,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/img/7qing.png">
 <meta property="article:published_time" content="2024-08-28T12:07:45.000Z">
-<meta property="article:modified_time" content="2024-08-29T15:27:05.500Z">
+<meta property="article:modified_time" content="2024-08-29T17:14:25.814Z">
 <meta property="article:author" content="7qing">
 <meta property="article:tag" content="阅读笔记">
 <meta property="article:tag" content="OS">
@@ -293,8 +293,8 @@
 <h1 id="1-编译器驱动程序"><a href="#1-编译器驱动程序" class="headerlink" title="1.编译器驱动程序"></a>1.编译器驱动程序</h1><p>​	大多数编译系统都提供了一个<strong>编译器驱动（Compiler Driver）</strong>，它可以根据用户需求调用<strong>语言预处理器（Language Preprocessor）</strong>、编译器、汇编器和链接器等。例如要在 GNU 编译系统中构建下列程序，我们可以 使用命令：</p>
 <figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs stylus">gcc -<span class="hljs-number">02</span> -<span class="hljs-selector-tag">g</span> -o <span class="hljs-selector-tag">p</span> <span class="hljs-selector-tag">main</span><span class="hljs-selector-class">.c</span> swap.c<br></code></pre></td></tr></table></figure>
 
-<p><img src="/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-7-%E9%93%BE%E6%8E%A5/c5dbec50679efcb44fdf4986480d2b7d.png" srcset="/img/loading.gif" lazyload></p>
-<p><img src="/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-7-%E9%93%BE%E6%8E%A5/8686ddb2b4177e202d5493a7cdd4a93c.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/2024/08/26/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-5-%E4%BC%98%E5%8C%96/c5dbec50679efcb44fdf4986480d2b7d.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/2024/08/26/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-5-%E4%BC%98%E5%8C%96/8686ddb2b4177e202d5493a7cdd4a93c.png" srcset="/img/loading.gif" lazyload></p>
 <p>​	上图概括了驱动程序在将示例程序从ASCI码源文件翻译成可执行目标文件时的行为。(如果你想看看这些步骤，用-v选项来运行GCC)</p>
 <p>驱动程序首先运行C预处理器(cpp)，它将C源程序 main.c翻译成一个 <strong>ASCII码的中间文件</strong> main.i.</p>
 <figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs stylus">cpp <span class="hljs-selector-attr">[other arguments]</span> <span class="hljs-selector-tag">main</span><span class="hljs-selector-class">.c</span> /tmp/<span class="hljs-selector-tag">main</span>.i<br></code></pre></td></tr></table></figure>
@@ -336,7 +336,7 @@
 <li><strong>共享目标文件</strong>：一种<strong>特殊类型的可重定位目标文件</strong>，可以在加载时或运行时被加载到内存中并动态链接。</li>
 </ul>
 <h1 id="4-可重定位目标文件"><a href="#4-可重定位目标文件" class="headerlink" title="4.可重定位目标文件"></a>4.可重定位目标文件</h1><p>​	典型的 ELF（Executable and Linkable Format）可重定位目标文件格式如下图所示：</p>
-<p><img src="/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-7-%E9%93%BE%E6%8E%A5/494e335da73a3b07ea5e1507763be10b.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/2024/08/26/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-5-%E4%BC%98%E5%8C%96/494e335da73a3b07ea5e1507763be10b.png" srcset="/img/loading.gif" lazyload></p>
 <ul>
 <li><p><strong>ELF 头（ELF Header）</strong>：开头是一个<strong>表征系统字长（Word Size）</strong>和<strong>字节顺序（Byte Ordering）</strong>的 16 字节序列。其余部分包括 ELF 头的大小、目标文件的类型（如可重定位、可执行或共享）、机器类型（如 x86-64）、<strong>节头表（Section Header Table）</strong>的文件偏移量以及其中**条目(entry)**的大小和数量；</p>
 </li>
@@ -373,7 +373,7 @@
 <figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs csharp"><span class="hljs-function"><span class="hljs-built_in">int</span> <span class="hljs-title">f</span>()</span><br>&#123;<br>    <span class="hljs-keyword">static</span> <span class="hljs-built_in">int</span> x = <span class="hljs-number">0</span>;<br>    <span class="hljs-keyword">return</span> x;<br>&#125;<br><span class="hljs-function"><span class="hljs-built_in">int</span> <span class="hljs-title">g</span>()</span><br>&#123;<br>    <span class="hljs-keyword">static</span> <span class="hljs-built_in">int</span> x = <span class="hljs-number">1</span>;<br>    <span class="hljs-keyword">return</span> x;<br>&#125;<br></code></pre></td></tr></table></figure>
 
 <p>​	那么编译器可能将<code>x.1</code>作为函数<code>f()</code>中的变量符号，将<code>x.2</code>作为函数<code>g()</code>中的变量符号发送给汇编器。<strong>汇编器使用接收到的<code>.s</code>文件中的符号构建符号表</strong>，其中每个条目的数据结构为：</p>
-<p><img src="/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-7-%E9%93%BE%E6%8E%A5/cd1122519cf50a75b23b03a187d9abf8.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/2024/08/26/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-5-%E4%BC%98%E5%8C%96/cd1122519cf50a75b23b03a187d9abf8.png" srcset="/img/loading.gif" lazyload></p>
 <ul>
 <li><code>name</code>：符号名在字符串表 .strtab 中的偏移量；</li>
 <li><code>value</code>：对于可重定位目标文件是符号在其 Section 中的偏移量，对于可执行目标文件是符号的运行时地址；</li>
@@ -424,17 +424,17 @@
 
 
 <p>​	在Unix系统中，静态库以一种称为存档(archive)的特殊文件格式存放在磁盘中。存档文件是一组连接起来的可重定位目标文件的集合，有一个头部用来描述每个成员目标文件的大小和位置。存档文件名由后缀.a标识。为了使我们对库的讨论更加形象具体，假设我们想在一个叫做 1ibvector.a的静态库中提供下图中的向量例程。</p>
-<p><img src="/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-7-%E9%93%BE%E6%8E%A5/7fc9b0388a3eb5f45da37c592fd4f439.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/2024/08/26/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-5-%E4%BC%98%E5%8C%96/7fc9b0388a3eb5f45da37c592fd4f439.png" srcset="/img/loading.gif" lazyload></p>
 <p>我们使用 AR 命令将下列程序打包为静态库文件<code>libvector.a</code>：</p>
 <figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs stylus">linux&gt; gcc -c addvec<span class="hljs-selector-class">.c</span> multvec<span class="hljs-selector-class">.c</span><br>linux&gt; ar rcs libvector<span class="hljs-selector-class">.a</span> addvec<span class="hljs-selector-class">.o</span> multvec.o<br></code></pre></td></tr></table></figure>
 
 <p>接下来再编写一个程序<code>main2.c</code>调用该静态库，头文件<code>vector.h</code>定义了库文件中的函数原型：</p>
-<p><img src="/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-7-%E9%93%BE%E6%8E%A5/5fa82c697df7838df12800b6d2b7ba3e.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/2024/08/26/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-5-%E4%BC%98%E5%8C%96/5fa82c697df7838df12800b6d2b7ba3e.png" srcset="/img/loading.gif" lazyload></p>
 <p>最后使用如下命令编译并链接main2.o和libvector.a：</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs c">linux&gt; gcc -c main2.c<br>linux&gt; gcc -<span class="hljs-type">static</span> -o p2 main2.o ./libvector.a<br></code></pre></td></tr></table></figure>
 
 <p><strong><code>-static</code>参数表示链接器应当构建一个完全链接的可执行目标文件</strong>，该文件可以被加载到内存中运行而无需进一步地链接。完整的链接流程如下图所示：</p>
-<p><img src="/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-7-%E9%93%BE%E6%8E%A5/baa40568b0803a179e778c83047e5c7d.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/2024/08/26/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-5-%E4%BC%98%E5%8C%96/baa40568b0803a179e778c83047e5c7d.png" srcset="/img/loading.gif" lazyload></p>
 <h2 id="6-3-静态库的符号解析"><a href="#6-3-静态库的符号解析" class="headerlink" title="6.3 静态库的符号解析"></a>6.3 静态库的符号解析</h2><p>​	符号解析时，链接器会按照从左到右的顺序依次扫描命令行中的目标文件和静态库。在这个过程中，E 为可重定位目标文件的集合，U 为被引用但还未找到定义的符号，D 为已扫描过的文件定义的符号，开始时三者均为空。</p>
 <ul>
 <li>若命令行中的输入文件为可重定位目标文件，则链接器将其添加到 E 中并更新 U 和 D 中的符号；</li>
@@ -458,12 +458,12 @@
 <li>R_X86_64_32：使用 32 位绝对地址重定位引用。CPU 直接使用指令中的目标地址作为有效地址，无需进一步地修改。</li>
 </ul>
 <h2 id="7-2-重定位符号引用"><a href="#7-2-重定位符号引用" class="headerlink" title="7.2 重定位符号引用"></a>7.2 重定位符号引用</h2><p>链接器的重定位算法的伪代码如图所示：</p>
-<p><img src="/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-7-%E9%93%BE%E6%8E%A5/d447b5578bb67aa0b5fe84c54ea52858.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/2024/08/26/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-5-%E4%BC%98%E5%8C%96/d447b5578bb67aa0b5fe84c54ea52858.png" srcset="/img/loading.gif" lazyload></p>
 <p>​	</p>
 <p>​	链接器遍历每个 Section（<code>s</code>）中的每个重定位条目（<code>r</code>）。为了使描述具体化，假设每个节(Section)s是一个字节数组，每个重定位条目r是一个类型为Elf32_Rela的结构体。另外，还设当算法运行时，链接器已经为每个节(用ADDR(S)表示)和每个符号都选择了运行时地址(用ADDR(r.symbol)表示)。第3行计算的是需要被重定位的4字节引用的数组s中的地址（<code>*refptr</code>是指令中的目标地址）。如果这个引用使用的是PC相对寻址，那么它就用第5<del>9行来重定位。如果该引用使用的是绝对寻址，它就通过第 11</del> 13 行来重定位。</p>
 <p>我们使用命令<code>objdump -dx main.o</code>得到汇编器为 <a href="#1.%E7%BC%96%E8%AF%91%E5%99%A8%E9%A9%B1%E5%8A%A8%E7%A8%8B%E5%BA%8F">main.c</a> 生成的机器码和重定位条目：</p>
-<p><img src="/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-7-%E9%93%BE%E6%8E%A5/64d46db6560dbda755c64d50acaea0d1.png" srcset="/img/loading.gif" lazyload></p>
-<h3 id="7-2-1-PC相对地址重定位"><a href="#7-2-1-PC相对地址重定位" class="headerlink" title="7.2.1 PC相对地址重定位"></a>7.2.1 PC相对地址重定位</h3><p><img src="/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-7-%E9%93%BE%E6%8E%A5/004701c6a73489a46cb86d6e2e9b5982.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/2024/08/26/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-5-%E4%BC%98%E5%8C%96/64d46db6560dbda755c64d50acaea0d1.png" srcset="/img/loading.gif" lazyload></p>
+<h3 id="7-2-1-PC相对地址重定位"><a href="#7-2-1-PC相对地址重定位" class="headerlink" title="7.2.1 PC相对地址重定位"></a>7.2.1 PC相对地址重定位</h3><p><img src="/2024/08/26/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-5-%E4%BC%98%E5%8C%96/004701c6a73489a46cb86d6e2e9b5982.png" srcset="/img/loading.gif" lazyload></p>
 <p>​	从这个列表中，我们看到ca11指令开始于节偏移0x6处，由1个字节的操作码0xe8和随后的 32位引用0xfffffffc(十进制-4)组成，它是以小端法字节顺序存储的。我们还看到下一行显示的是这个引用的重定位条目。(回想一下，重定位条目和指令实际上是存放在目标文件的不同节中的。OBJDUMP工具为了方便将它们显示在一起。)重定位条目r由3个字段组成:</p>
 <figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs ini"><span class="hljs-attr">r.offset</span> = <span class="hljs-number">0</span>x7<br><span class="hljs-attr">r.symbol</span> = swap<br><span class="hljs-attr">r.type</span>   = R_X<span class="hljs-number">86_64_</span>PC32<br><span class="hljs-attr">r.addend</span> = -<span class="hljs-number">4</span><br></code></pre></td></tr></table></figure>
 
@@ -494,26 +494,26 @@
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs c">r.offset = <span class="hljs-number">0x0</span><br>r.symbol = buf<br>r.type   = R_X86_64_32<br>r.addend = <span class="hljs-number">0</span><br></code></pre></td></tr></table></figure>
 
 <p>因为bufp0是一个已初始化的数据目标，那么它将被存放在可重定位目标模块swap.o的.data节中。因为它被初始化为一个全局数组的地址，所以它需要被重定位。下面是 swap.o中。data节的反汇编列表:</p>
-<p><img src="/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-7-%E9%93%BE%E6%8E%A5/fe0d062a26dbdf47994c1694f99f3d34.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/2024/08/26/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-5-%E4%BC%98%E5%8C%96/fe0d062a26dbdf47994c1694f99f3d34.png" srcset="/img/loading.gif" lazyload></p>
 <p>我们看到.data节包含一个32位引用，bufp0指针的值为0x0。重定位条目告诉链接器这是一个 32位绝对引用，开始于偏移0处，必须重定位使得它指向符号buf。现在，假设链接器已经确定:</p>
 <p>ADDR(r.symbol)&#x3D;ADDR(buf)&#x3D;0x8049454，那么首先我们可以计算得到该引用的运行时地址为：</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs c">*refptr = (<span class="hljs-type">unsigned</span>) (ADDR(r.symbol) + *refptr)<br>        = (<span class="hljs-type">unsigned</span>) (<span class="hljs-number">0x8049454</span>      + <span class="hljs-number">0</span>)<br>        = (<span class="hljs-type">unsigned</span>) (<span class="hljs-number">0x8049454</span>)<br></code></pre></td></tr></table></figure>
 
 <p>在得到的可执行目标文件中，引用有下面的重定位形式:</p>
-<p><img src="/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-7-%E9%93%BE%E6%8E%A5/5f970249487f23287b62ef56bdb8ad2e.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/2024/08/26/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-5-%E4%BC%98%E5%8C%96/5f970249487f23287b62ef56bdb8ad2e.png" srcset="/img/loading.gif" lazyload></p>
 <p>总而言之，链接器决定在运行时变量bufp0将放置在存储器地址0x804945c处，并且被初始化为0x8049454，这个值就是buf数组的运行时地址。</p>
 <h1 id="8-可执行目标文件"><a href="#8-可执行目标文件" class="headerlink" title="8.可执行目标文件"></a>8.可执行目标文件</h1><p>ELF 可执行目标文件的结构如下：</p>
-<p><img src="/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-7-%E9%93%BE%E6%8E%A5/839cb440a8e32a0044485b652368eff6.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/2024/08/26/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-5-%E4%BC%98%E5%8C%96/839cb440a8e32a0044485b652368eff6.png" srcset="/img/loading.gif" lazyload></p>
 <p>​	ELF 头描述了文件的整体格式，并包含了程序在运行时执行的第一条指令的地址。.init 定义了一个名为<code>_init</code>的函数，它将被程序的初始化代码所调用。其余 Section 与可重定位目标文件类似，只不过它们已被重定位到运行时的内存地址。正因如此，该文件中没有 .rel.text 和 .rel.data。</p>
 <p>​	ELF可执行文件被设计得很容易加载到存储器，可执行文件的**连续的片(chunk)<strong>被映射到连续的存储器段。</strong>段头部表(segment header table)**描述了这种映射关系。下图 展示了可执行文件 p的段头部表，是由OBJDUMP 显示的。</p>
-<p><img src="/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-7-%E9%93%BE%E6%8E%A5/bc91362eb5f5fde40acfa2e586f8f7c6.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/2024/08/26/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-5-%E4%BC%98%E5%8C%96/bc91362eb5f5fde40acfa2e586f8f7c6.png" srcset="/img/loading.gif" lazyload></p>
 <p>​	从段头部表中，我们会看到根据可执行目标文件的内容初始化两个存储器段。</p>
 <p>​	第一个段(代码段)对齐到一个4KB(2”)的边界，有读&#x2F;执行许可，开始于存储器地址 0x08048000处，总共的存储器大小是0x448字节，并且被初始化为可执行目标文件的头0x448 个字节，其中包括ELF头部、段头部表以及.init、.text和.rodata节。<br>​	第二个段(数据段)被对齐到一个4KB的边界，有读&#x2F;写许可开始于存储器地址 0x08049448处，总的存储器大小为0x104字节，并用从文件偏移 0x448处开始的 0xe8个字节初始化，在这种情况下，偏移0x448处正是.data节的开始。该段中剩下的字节对应于运行时将被初始化为零的.bss数据。</p>
 <p>对于每个内存段，链接器必须选择一个起始地址 vaddr，使得：</p>
 <p>​			<em>vaddr</em> <em>mod</em> <em>align</em>&#x3D; <em>off</em> <em>mod</em> <em>align</em></p>
 <p>其中，off 是该内存段中第一个 Section 在目标文件中的偏移量，align 是程序头表中指定的对齐方式。这种对齐要求是一种优化，它可以使目标文件被更加有效地加载到内存中。</p>
 <h1 id="9-加载可执行目标"><a href="#9-加载可执行目标" class="headerlink" title="9.加载可执行目标"></a>9.加载可执行目标</h1><p>下图展示了 Linux 程序的运行时内存结构：</p>
-<p><img src="/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-7-%E9%93%BE%E6%8E%A5/f5b0f8944ad577db9c0399d5a96b7a27.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/2024/08/26/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-5-%E4%BC%98%E5%8C%96/f5b0f8944ad577db9c0399d5a96b7a27.png" srcset="/img/loading.gif" lazyload></p>
 <p>​	加载器首先根据程序头表将可执行目标文件中的块复制到内存中的代码和数据段，然后跳转到<strong>程序入口</strong>，即<code>_start_</code>函数（在系统目标文件<code>crt1.o</code>中定义）的地址。该函数再调用<code>libc.so</code>中定义的系统启动函数<code>__libc_start_main</code>，由它初始化执行环境，之后在从.text和.init节中调用了初始化例程后，启动代码调用atexit例程，这个程序附加了一系列在应用程序正常中止时应该调用的程序。exit函数运行atexit注册的函数，然后通过调用_exit将控制返回给操作系统。接着，启动代码调用应用程序的 main 程序，它会开始执行我们的C代码。在应用程序返回之后，启动代码调用exit 程序，它将控制返回给操作系统调用用户级的主函数并处理其返回。</p>
 <div class="note note-secondary">
             <p>​					加载器实际上是如何工作的?<br>​	我们对于加载的描述从概念上来说是准确的，但也不完全准确。为了理解加载实际上是如何工作的，你必须理解进程、虚拟存储器和存储器映射的概念，这些我们还没有加以讨论。在后面的第8 章和第9章中遇到这些概念时，我们将重新回到加载的问题上，并逐渐向你揭开它的神秘面纱。<br>​	对于不够有耐心的读者，下面是关于加载实际上是如何工作的一个概述:Unix 系统中的每个程序都运行在一个进程上下文中，有自己的虚拟地址空间。当外壳运行一个程序时，父外壳进程生成一个子进程，它是父进程的一个复制品。子进程通过 execve 系统调用启动加载器。加载器删除子进程现有的虚拟存储器段，并创建一组新的代码、数据、堆和栈段。新的栈和堆段被初始化为零。通过将虚拟地址空间中的页映射到可执行文件的页大小的片(chunk)，新的代码和数据段被初始化为可执行文件的内容。最后，加载器跳转到start地址，它最终会调用应用程序的main函数。除了一些头部信息，在加载过程中没有任何从磁盘到存储器的数据拷贝。直到 CPU引用一个被映射的虚拟页才会进行拷贝，此时，操作系统利用它的页面调度机制自动将页面从磁盘传送到存储器。</p>
@@ -527,7 +527,7 @@
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-comment">/* $begin main2 */</span><br><span class="hljs-comment">/* main2.c */</span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;stdio.h&gt;</span></span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&quot;vector.h&quot;</span></span><br><br><span class="hljs-type">int</span> x[<span class="hljs-number">2</span>] = &#123;<span class="hljs-number">1</span>, <span class="hljs-number">2</span>&#125;;<br><span class="hljs-type">int</span> y[<span class="hljs-number">2</span>] = &#123;<span class="hljs-number">3</span>, <span class="hljs-number">4</span>&#125;;<br><span class="hljs-type">int</span> z[<span class="hljs-number">2</span>];<br><br><span class="hljs-function"><span class="hljs-type">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span><br><span class="hljs-function"></span>&#123;<br>    <span class="hljs-built_in">addvec</span>(x, y, z, <span class="hljs-number">2</span>);<br>    <span class="hljs-built_in">printf</span>(<span class="hljs-string">&quot;z = [%d %d]\n&quot;</span>, z[<span class="hljs-number">0</span>], z[<span class="hljs-number">1</span>]);<br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;<br>&#125;<br><span class="hljs-comment">/* $end main2 */</span><br></code></pre></td></tr></table></figure>
 
 <p> 动态链接过程如下图所示：</p>
-<p> <img src="/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-7-%E9%93%BE%E6%8E%A5/5b972378b0fdee43bd8cda4aa7b126b2.png" srcset="/img/loading.gif" lazyload></p>
+<p> <img src="/2024/08/26/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-5-%E4%BC%98%E5%8C%96/5b972378b0fdee43bd8cda4aa7b126b2.png" srcset="/img/loading.gif" lazyload></p>
 <p>我们使用如下指令将 addvec.c 和 multvec.c 构建为共享库文件<code>libvector.so</code>:</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs c">linux&gt; gcc -shared -fpic -o libvector.so addvec.c multvec.c<br></code></pre></td></tr></table></figure>
 
@@ -557,12 +557,12 @@
 <h1 id="12-与位置无关代码"><a href="#12-与位置无关代码" class="headerlink" title="12.与位置无关代码"></a>12.与位置无关代码</h1><p>​	现代系统在编译共享库时会生成一种无需重定位即可被加载到内存中任意位置的代码，即与位置无关代码（Position-Independent Code，PIC），这样共享库就能被多个正在运行的进程同时引用。</p>
 <h2 id="7-12-1-PIC数据引用"><a href="#7-12-1-PIC数据引用" class="headerlink" title="7.12.1 PIC数据引用"></a>7.12.1 PIC数据引用</h2><p>​	编译器在 PIC 数据段的开头创建了一个全局偏移量表（Global Offset Table，GOT），其中的每个条目都对应一个被目标模块引用的全局符号。编译器还会为这些条目生成重定位记录。加载时，动态链接器重定位每个 GOT 条目，使其包含被引用符号的绝对地址。每个引用了全局符号的目标模块都有自己的 GOT。</p>
 <p>下图展示了示例共享库<code>libvector.so</code>中的 GOT：</p>
-<p><img src="/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-7-%E9%93%BE%E6%8E%A5/20220331211838.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/2024/08/26/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-5-%E4%BC%98%E5%8C%96/20220331211838.png" srcset="/img/loading.gif" lazyload></p>
 <p>​	无论我们在何处加载共享模块，其数据段与代码段之间的距离始终相同。因此，代码段中的<code>addl</code>与数据段中的 GOT[3] 之间的偏移量是一个运行时常量。当函数<code>addvec</code>引用全局变量<code>addcnt</code>时，先通过<code>0x2008b9(%rip)</code>计算得到 GOT[3] 的地址，然后从中读取加载时被动态链接器赋予的<code>addcnt</code>的绝对地址。</p>
 <h2 id="7-12-2-PIC函数调用"><a href="#7-12-2-PIC函数调用" class="headerlink" title="7.12.2 PIC函数调用"></a>7.12.2 PIC函数调用</h2><p>​	PIC 函数调用的运行时地址是在该函数第一次被调用时确定的，这种技术被称为延迟绑定（Lazy Binding）。当应用程序导入了一个包含成百上千个函数的共享库（如<code>libc.so</code>），却只调用其中一小部分的函数时，这种技术可以大大减少加载时不必要的重定位操作。</p>
 <p>​	延迟绑定是通过 GOT 和过程链接表（Procedure Linkage Table，PLT）共同实现的。只要目标模块调用了共享库中定义的函数，那么它就有自己的 GOT 和 PLT。上文提到，GOT 是数据段的一部分，而 PLT 则是代码段的一部分。</p>
 <p>GOT 和 PLT 在运行时协同工作解析函数地址的过程如下图所示：</p>
-<p><img src="/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-7-%E9%93%BE%E6%8E%A5/20220401173947.png" srcset="/img/loading.gif" lazyload></p>
+<p><img src="/2024/08/26/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-5-%E4%BC%98%E5%8C%96/20220401173947.png" srcset="/img/loading.gif" lazyload></p>
 <p>​	可执行文件中每个对共享库函数的调用都与 PLT 数组中的条目对应。其中，PLT[0] 是跳转到动态链接器的特殊条目，PLT[1] 对应系统启动函数<code>__libc_start_main</code>。从 PLT[2] 开始的条目对应用户代码调用的函数，如图中的<code>addvec</code>。</p>
 <p>​	当与 PLT 一起使用时，GOT [0] 和 GOT[1] 包含了动态连接器在解析函数地址时所需的信息，GOT[2] 是动态链接器的入口点。其余的每个条目均对应于一个在运行时需要被解析地址的调用函数，以及一个 PLT 条目。例如，GOT[4] 和 PLT[2] 与<code>addvec</code>对应。</p>
 <p>程序第一次调用<code>addvec</code>并解析其地址的过程如上图（a）所示：</p>
