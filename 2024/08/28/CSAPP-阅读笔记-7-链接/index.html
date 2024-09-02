@@ -19,16 +19,16 @@
   <meta name="author" content="7qing">
   <meta name="keywords" content="">
   
-    <meta name="description" content="​	   链接(linking) 是将各种代码和数据部分收集起来并组合成为一个单一文件的过程，这个文件可 **被加载(或被拷贝)**到存储器并执行。链接可以执行于 编译时(compile time) ，也就是在源代码被翻译成机器代码时;也可以执行于 加载时(loadtime) ，也就是在程序被 加载器(loader) 加载到存储器并执行时;甚至执行于 运行时(run time) ，由应用程序来执行">
+    <meta name="description" content="​	   链接(linking) 是将各种代码和数据部分收集起来并组合成为一个单一文件的过程，这个文件可被加载到存储器并执行。链接可以执行于 编译时(compile time) ，也就是在源代码被翻译成机器代码时;也可以执行于 加载时(loadtime) ，也就是在程序被 加载器(loader) 加载到存储器并执行时;甚至执行于 运行时(run time) ，由应用程序来执行。在早期的计算机系统中">
 <meta property="og:type" content="article">
 <meta property="og:title" content="CSAPP_阅读笔记_7_链接">
 <meta property="og:url" content="http://example.com/2024/08/28/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-7-%E9%93%BE%E6%8E%A5/index.html">
 <meta property="og:site_name" content="7qing">
-<meta property="og:description" content="​	   链接(linking) 是将各种代码和数据部分收集起来并组合成为一个单一文件的过程，这个文件可 **被加载(或被拷贝)**到存储器并执行。链接可以执行于 编译时(compile time) ，也就是在源代码被翻译成机器代码时;也可以执行于 加载时(loadtime) ，也就是在程序被 加载器(loader) 加载到存储器并执行时;甚至执行于 运行时(run time) ，由应用程序来执行">
+<meta property="og:description" content="​	   链接(linking) 是将各种代码和数据部分收集起来并组合成为一个单一文件的过程，这个文件可被加载到存储器并执行。链接可以执行于 编译时(compile time) ，也就是在源代码被翻译成机器代码时;也可以执行于 加载时(loadtime) ，也就是在程序被 加载器(loader) 加载到存储器并执行时;甚至执行于 运行时(run time) ，由应用程序来执行。在早期的计算机系统中">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/img/7qing.png">
 <meta property="article:published_time" content="2024-08-28T12:07:45.000Z">
-<meta property="article:modified_time" content="2024-08-30T20:20:47.527Z">
+<meta property="article:modified_time" content="2024-09-02T09:04:34.289Z">
 <meta property="article:author" content="7qing">
 <meta property="article:tag" content="OS">
 <meta property="article:tag" content="阅读笔记">
@@ -289,7 +289,7 @@
               <p id="updated-time" class="note note-info" style="display: none">
                 
                   
-                    本文最后更新于 2024-08-31T04:20:47+08:00
+                    本文最后更新于 2024-09-02T17:04:34+08:00
                   
                   
 
@@ -299,7 +299,7 @@
             
               <div class="markdown-body">
                 
-                <p>​	   <strong>链接(linking)</strong> 是将各种代码和数据部分收集起来并组合成为一个单一文件的过程，这个文件可 **被加载(或被拷贝)**到存储器并执行。链接可以执行于 <strong>编译时(compile time)</strong> ，也就是在源代码被翻译成机器代码时;也可以执行于 <strong>加载时(loadtime)</strong> ，也就是在程序被 <strong>加载器(loader)</strong> 加载到存储器并执行时;甚至执行于 <strong>运行时(run time)</strong> ，由应用程序来执行。在早期的计算机系统中，链接是手动执行的。在现代系统中，链接是由叫做 <strong>链接器(linker)</strong> 的程序自动执行的。<br>
+                <p>​	   <strong>链接(linking)</strong> 是将各种代码和数据部分收集起来并组合成为一个单一文件的过程，这个文件可<strong>被加载</strong>到存储器并执行。链接可以执行于 <strong>编译时(compile time)</strong> ，也就是在源代码被翻译成机器代码时;也可以执行于 <strong>加载时(loadtime)</strong> ，也就是在程序被 <strong>加载器(loader)</strong> 加载到存储器并执行时;甚至执行于 <strong>运行时(run time)</strong> ，由应用程序来执行。在早期的计算机系统中，链接是手动执行的。在现代系统中，链接是由叫做 <strong>链接器(linker)</strong> 的程序自动执行的。<br>
 ​	链接器在软件开发中扮演着一个关键的角色，因为它们使得 <strong>分离编译(separate compilation)</strong> 成为可能。我们不用将一个大型的应用程序组织为一个巨大的源文件，而是可以把它分解为更小、更好管理的模块，可以独立地修改和编译这些模块。当我们改变这些模块中的一个时，只需简单地重新编译它，并重新链接应用，而不必重新编译其他文件。</p>
 <h1>1.编译器驱动程序</h1>
 <p>​	大多数编译系统都提供了一个<strong>编译器驱动（Compiler Driver）</strong>，它可以根据用户需求调用<strong>语言预处理器（Language Preprocessor）</strong>、编译器、汇编器和链接器等。例如要在 GNU 编译系统中构建下列程序，我们可以 使用命令：</p>
@@ -649,7 +649,7 @@
       
         <div class="license-meta-item license-meta-date">
           <div>更新于</div>
-          <div>2024年8月31日</div>
+          <div>2024年9月2日</div>
         </div>
       
       
