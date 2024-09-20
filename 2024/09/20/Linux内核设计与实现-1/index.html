@@ -1,0 +1,950 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/logo.png">
+  <link rel="icon" href="/img/logo.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="7qing">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="我们主要从这五方面入手，了解linux内核是如何运行的：    进程管理   内存管理   文件系统   设备驱动程序   网络   第 2 章 从内核出发 ​	可以从内核网站中下载Linux的内核源码。可以使用uname -r查看内核release版本号。 123git clone git:&#x2F;&#x2F;git.kernel.org&#x2F;pub&#x2F;scm&#x2F;linux&#x2F;kernel&#x2F;git&#x2F;torvalds&#x2F;li">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux内核设计与实现(1)">
+<meta property="og:url" content="http://example.com/2024/09/20/Linux%E5%86%85%E6%A0%B8%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0-1/index.html">
+<meta property="og:site_name" content="7qing">
+<meta property="og:description" content="我们主要从这五方面入手，了解linux内核是如何运行的：    进程管理   内存管理   文件系统   设备驱动程序   网络   第 2 章 从内核出发 ​	可以从内核网站中下载Linux的内核源码。可以使用uname -r查看内核release版本号。 123git clone git:&#x2F;&#x2F;git.kernel.org&#x2F;pub&#x2F;scm&#x2F;linux&#x2F;kernel&#x2F;git&#x2F;torvalds&#x2F;li">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/Tux.png">
+<meta property="article:published_time" content="2024-09-20T07:35:37.000Z">
+<meta property="article:modified_time" content="2024-09-20T08:09:33.694Z">
+<meta property="article:author" content="7qing">
+<meta property="article:tag" content="OS">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="C&#x2F;C++">
+<meta property="article:tag" content="程序设计">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://example.com/img/Tux.png">
+  
+  
+  
+  <title>Linux内核设计与实现(1) - 7qing</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"example.com","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":"j6Zz0VRaYO9vOd5c4lYcbJ0l-gzGzoHsz","app_key":"IdTuwk7eTRDfLgZzPUknFG0z","server_url":"https://j6zz0vra.lc-cn-n1-shared.com","path":"window.location.pathname","ignore_local":true},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2024-01-01T00:00:00.000Z","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+  
+
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 50vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>7qing</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/backward.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Linux内核设计与实现(1)"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2024-09-20 15:35" pubdate>
+          2024年9月20日 下午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          1.4k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          12 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="leancloud-page-views"></span> 次
+        </span>
+        
+      
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Linux内核设计与实现(1)</h1>
+            
+              <p id="updated-time" class="note note-info" style="display: none">
+                
+                  
+                    本文最后更新于 2024-09-20T16:09:33+08:00
+                  
+                  
+
+                
+              </p>
+            
+            
+              <div class="markdown-body">
+                
+                <p>我们主要从这五方面入手，了解linux内核是如何运行的：</p>
+<p><img src="Linux%E5%86%85%E6%A0%B8%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0(1)/%E5%86%85%E6%A0%B8%E7%BB%93%E6%9E%84.png" srcset="/img/loading.gif" lazyload alt="内核结构"></p>
+<ol>
+<li>
+<p>进程管理</p>
+</li>
+<li>
+<p>内存管理</p>
+</li>
+<li>
+<p>文件系统</p>
+</li>
+<li>
+<p>设备驱动程序</p>
+</li>
+<li>
+<p>网络</p>
+</li>
+</ol>
+<h1>第 2 章 从内核出发</h1>
+<p>​	可以从<a target="_blank" rel="noopener" href="https://www.kernel.org/">内核网站</a>中下载Linux的内核源码。可以使用<code>uname -r</code>查看内核release版本号。</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs awk">git clone git:<span class="hljs-regexp">//gi</span>t.kernel.org<span class="hljs-regexp">/pub/</span>scm<span class="hljs-regexp">/linux/</span>kernel<span class="hljs-regexp">/git/</span>torvalds/linux-<span class="hljs-number">2.6</span>.git<br><span class="hljs-comment">#更新到最新版本</span><br>git pull<br></code></pre></td></tr></table></figure>
+<p>也可以直接使用如下命令直接clone最新版本。然后使用<code>git checkout</code>来切换分支</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs awk">git clone git:<span class="hljs-regexp">//gi</span>t.kernel.org<span class="hljs-regexp">/pub/</span>scm<span class="hljs-regexp">/linux/</span>kernel<span class="hljs-regexp">/git/</span>stable/linux-stable.git<br></code></pre></td></tr></table></figure>
+<h2 id="2-1-使用补丁">2.1 使用补丁</h2>
+<p>​	Linux中一般使用补丁的形式对发布的代码进行修改</p>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs glsl"><span class="hljs-keyword">patch</span> -p1 &lt; .../<span class="hljs-keyword">patch</span>-x.y.z<br></code></pre></td></tr></table></figure>
+<h2 id="2-2-内核代码树">2.2 内核代码树</h2>
+<p>​	内核源码树由很多目录组成，而大多数目录又包括更多的子目录，源码树的根目录以及子目录如下表所表示：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">目录</th>
+<th style="text-align:left">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">arch</td>
+<td style="text-align:left">特定体系结构的源码如：ARM，AMD64</td>
+</tr>
+<tr>
+<td style="text-align:left">block</td>
+<td style="text-align:left">块设备I/O层</td>
+</tr>
+<tr>
+<td style="text-align:left">crypto</td>
+<td style="text-align:left">加密API</td>
+</tr>
+<tr>
+<td style="text-align:left">Documentation</td>
+<td style="text-align:left">内核源码文档</td>
+</tr>
+<tr>
+<td style="text-align:left">drivers</td>
+<td style="text-align:left">设备驱动程序</td>
+</tr>
+<tr>
+<td style="text-align:left">firmware</td>
+<td style="text-align:left">使用某些驱动程序而需要的设备的固件</td>
+</tr>
+<tr>
+<td style="text-align:left">fs</td>
+<td style="text-align:left">VFS和各种文件系统</td>
+</tr>
+<tr>
+<td style="text-align:left">include</td>
+<td style="text-align:left">内核头文件</td>
+</tr>
+<tr>
+<td style="text-align:left">init</td>
+<td style="text-align:left">内核引导和初始爱护</td>
+</tr>
+<tr>
+<td style="text-align:left">ipc</td>
+<td style="text-align:left">进程间通信代码</td>
+</tr>
+<tr>
+<td style="text-align:left">kernel</td>
+<td style="text-align:left">调度程序核心子系统</td>
+</tr>
+<tr>
+<td style="text-align:left">lib</td>
+<td style="text-align:left">通用内核函数</td>
+</tr>
+<tr>
+<td style="text-align:left">mm</td>
+<td style="text-align:left">内存管理子系统和VM</td>
+</tr>
+<tr>
+<td style="text-align:left">net</td>
+<td style="text-align:left">网络子系统</td>
+</tr>
+<tr>
+<td style="text-align:left">samples</td>
+<td style="text-align:left">示例，示范代码</td>
+</tr>
+<tr>
+<td style="text-align:left">scripts</td>
+<td style="text-align:left">编译内核所用的脚本</td>
+</tr>
+<tr>
+<td style="text-align:left">security</td>
+<td style="text-align:left">Linux安全模块</td>
+</tr>
+<tr>
+<td style="text-align:left">sound</td>
+<td style="text-align:left">语音子系统</td>
+</tr>
+<tr>
+<td style="text-align:left">usr</td>
+<td style="text-align:left">早期用户空间代码(所谓的initramfs)</td>
+</tr>
+<tr>
+<td style="text-align:left">tools</td>
+<td style="text-align:left">在Linux开发中有用的工具</td>
+</tr>
+<tr>
+<td style="text-align:left">virt</td>
+<td style="text-align:left">虚拟化基础结构</td>
+</tr>
+</tbody>
+</table>
+<p>COPYING是内个许可证，CREDITS是内核开发者列表。MAINTAINERS是维护者列表</p>
+<h2 id="2-3-内核结构">2.3 内核结构</h2>
+<p>按功能，Linux内核可以划分为5个不同的部分，每一部分处理一项明确的功能，同时又向其他内核组件提供这项功能。这种结构也反映到内核的源代码上——这5部分都形成了自己的子树。</p>
+<p><img src="Linux%E5%86%85%E6%A0%B8%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0(1)/%E5%86%85%E6%A0%B8%E7%BB%93%E6%9E%84.png" srcset="/img/loading.gif" lazyload alt="内核结构"></p>
+<ol>
+<li>
+<p>进程管理</p>
+</li>
+<li>
+<p>内存管理</p>
+</li>
+<li>
+<p>文件系统</p>
+</li>
+<li>
+<p>设备驱动程序</p>
+</li>
+<li>
+<p>网络</p>
+</li>
+</ol>
+<h2 id="2-4-编译内核">2.4 编译内核</h2>
+<p>一般使用make命令来进行</p>
+<figure class="highlight gauss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs gauss"><span class="hljs-meta">#使用命令行选项</span><br><br><span class="hljs-built_in">make</span> menuconfig<br><span class="hljs-meta">#基于gtk+的图形工具</span><br><br><span class="hljs-built_in">make</span> gconfig<br><span class="hljs-meta">#使用默认体系结构配置</span><br><br><span class="hljs-built_in">make</span> defconfig<br></code></pre></td></tr></table></figure>
+<p>也可以使用如下的命令，将电脑中已有的配置文件作为编译配置选项</p>
+<figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs jboss-cli"><span class="hljs-comment">#将配置文件内容，添加到.config文件中</span><br><br>zcat <span class="hljs-string">/proc/config.gz</span> &gt; <span class="hljs-string">.config</span><br><span class="hljs-comment">#使用配置文件编译</span><br><br>make oldconfig<br><br>make 进行编译<br></code></pre></td></tr></table></figure>
+<h3 id="2-4-2-减少编译的垃圾信息">2.4.2 减少编译的垃圾信息</h3>
+<figure class="highlight gauss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs gauss"><span class="hljs-meta">#使用如下命令，进行垃圾信息重定向到文件</span><br><br><span class="hljs-built_in">make</span> &gt; .. /detritus<br><span class="hljs-meta">#直接扔掉信息</span><br><br><span class="hljs-built_in">make</span> &gt; /dev/<span class="hljs-built_in">null</span><br></code></pre></td></tr></table></figure>
+<p>接下来运行如下命令，进行内核模块的安装</p>
+<figure class="highlight ebnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs ebnf"><span class="hljs-attribute">make modules_install</span><br></code></pre></td></tr></table></figure>
+<h2 id="2-5-内核开发的特点">2.5 内核开发的特点</h2>
+<ul>
+<li>内核编程时既不能访问c库也不能访问标准的c头文件:
+<ul>
+<li>完整的C库太大太低效，因此不方便使用</li>
+<li>基本头文件在顶级目录下的include目录中，体系结构相关的头文件在arch//include/asm目录下使用<code>#include &lt;asm/ioctl.h&gt;</code>进行头文件的包含。</li>
+</ul>
+</li>
+<li>内核编程时必须使用GNU C(GNU C 、ANSI C、标准C、标准c++区别和联系)
+<ul>
+<li>GNU C 支持inline内联函数</li>
+<li>使用<code>asm volatile(&quot;rdtsc&quot;:&quot;=a&quot; (low),&quot;=d&quot; (high))</code>嵌入汇编代码</li>
+</ul>
+</li>
+<li>内核编程时缺乏像用户空间那样的内存保护机制
+<ul>
+<li>用户进程中进行非法内存访问，内核会发现错误并发送SIGSEGV信号，结束整个进程。内核自己访问非法内存往往会造成内核死去。</li>
+<li>内核中的内存都不分页，每用掉一个字节，物理内存就减少一个字节</li>
+</ul>
+</li>
+<li>内核编程时难以执行浮点运算
+<ul>
+<li>用户空间中的浮点操作，内核会完成浮点数到整数的转换。因此内核并不能完美的支持浮点数操作，因为它本身不能陷入。</li>
+</ul>
+</li>
+<li>内核给每个进程只有一个很小的定长堆栈
+<ul>
+<li>内核栈的准确大小随着体系结构而改变，内核栈的大小是两页，32位是8KB,64位是16KB。</li>
+</ul>
+</li>
+<li>内核支持异步中断、抢占和SMP(対称多处理器结构)，因此必须时刻注意同步和并发
+<ul>
+<li>同时在大于两核处理器上执行内核代码，可能会同时访问共享的同一个资源</li>
+<li>中断是异步到来的，完全不顾及当前正在执行的代码</li>
+<li>内核可抢占，没有保护，可能导致几段代码同时访问相同的资源，通常使用自旋锁和信号量来解决</li>
+</ul>
+</li>
+<li>要仔细考虑可移植的特性
+<ul>
+<li>注意保持字节序、64位对齐、不假定字长和页面长度等一系列准则等</li>
+</ul>
+</li>
+</ul>
+<h1>第 3 章 进程管理</h1>
+<h3 id="3-1-进程">3.1 进程</h3>
+<p><strong>每一个线程都拥有一个独立的程序计数器、进程栈、一组进程寄存器</strong>。<em>内核调度的对象是线程，而不是进程</em> (<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/8ff15d3a1dfd">从进程和线程了解浏览器的工作原理</a>)；在Linux中对线程和进程的区分度不是很大。线程之间共享虚拟内存，但是每个线程都拥有自己独立的虚拟处理器。每个进程都有自己的用户栈和内核栈，陷入内核时，将用户栈寄存器压入内核栈；出去时，重新返回用户栈寄存器，并清空内核栈–<strong>内核栈总是空的</strong></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Linux%E5%86%85%E6%A0%B8%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0/" class="category-chain-item">Linux内核设计与实现</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/OS/" class="print-no-link">#OS</a>
+      
+        <a href="/tags/Linux/" class="print-no-link">#Linux</a>
+      
+        <a href="/tags/C-C/" class="print-no-link">#C/C++</a>
+      
+        <a href="/tags/%E7%A8%8B%E5%BA%8F%E8%AE%BE%E8%AE%A1/" class="print-no-link">#程序设计</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Linux内核设计与实现(1)</div>
+      <div>http://example.com/2024/09/20/Linux内核设计与实现-1/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>7qing</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2024年9月20日</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>更新于</div>
+          <div>2024年9月20日</div>
+        </div>
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2024/09/05/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-12-%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" title="CSAPP_阅读笔记_12_并发编程">
+                        <span class="hidden-mobile">CSAPP_阅读笔记_12_并发编程</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+  <div id="valine"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#valine', function() {
+      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
+        var options = Object.assign(
+          {"appId":"j6Zz0VRaYO9vOd5c4lYcbJ0l-gzGzoHsz","appKey":"IdTuwk7eTRDfLgZzPUknFG0z","path":"window.location.pathname","placeholder":null,"avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
+          {
+            el: "#valine",
+            path: window.location.pathname
+          }
+        )
+        new Valine(options);
+        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
+          var imgSelector = '#valine .vcontent img:not(.vemoji)';
+          Fluid.plugins.imageCaption(imgSelector);
+          Fluid.plugins.fancyBox(imgSelector);
+        })
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+    
+    
+
+  
+
+</div>
+
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  var relativeDate = function() {
+    var updatedTime = document.getElementById('updated-time');
+    if (updatedTime) {
+      var text = updatedTime.textContent;
+      var reg = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:Z|[+-]\d{2}:\d{2})/;
+      var matchs = text.match(reg);
+      if (matchs) {
+        var relativeTime = moment(matchs[0]).fromNow();
+        updatedTime.textContent = text.replace(reg, relativeTime);
+      }
+      updatedTime.style.display = '';
+    }
+  };
+  Fluid.utils.createScript('https://lib.baomitu.com/moment.js/2.29.4/moment.min.js', function() {
+    if (!'zh-cn'.startsWith('en')) {
+      Fluid.utils.createScript('https://lib.baomitu.com/moment.js/2.29.4/locale/zh-cn.min.js', function() {
+        relativeDate();
+      });
+    } else {
+      relativeDate();
+    }
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script defer src="/js/leancloud.js" ></script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
