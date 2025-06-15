@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="在 Unix 系统中，是通过使用由内核提供的系统级 Unix I&#x2F;O 函数来实现这些较高级别的 I&#x2F;0 函数的。大多数时候，高级别 IO 函数工作良好，没有必要直接使用 Unix I&#x2F;O。那么为什么还要麻烦地学习 Unix I&#x2F;O 呢?  了解 UnixIO 将帮助你理解其他的系统概念。I&#x2F;O 是系统操作不可或缺的一部分，因此我们经常遇到 IO 和">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CSAPP_阅读笔记_10_系统级I&#x2F;O">
+<meta property="og:url" content="https://7qing.github.io/2024/09/02/CSAPP/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/index.html">
+<meta property="og:site_name" content="7qing-blog">
+<meta property="og:description" content="在 Unix 系统中，是通过使用由内核提供的系统级 Unix I&#x2F;O 函数来实现这些较高级别的 I&#x2F;0 函数的。大多数时候，高级别 IO 函数工作良好，没有必要直接使用 Unix I&#x2F;O。那么为什么还要麻烦地学习 Unix I&#x2F;O 呢?  了解 UnixIO 将帮助你理解其他的系统概念。I&#x2F;O 是系统操作不可或缺的一部分，因此我们经常遇到 IO 和">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://7qing.github.io/pic/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/20220807220609.png">
+<meta property="og:image" content="https://7qing.github.io/pic/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/6d1a7134c26b06592ac25b12c73d1a97.png">
+<meta property="og:image" content="https://7qing.github.io/pic/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/477e0109e741db37bb3a9148ea7550a6.png">
+<meta property="og:image" content="https://7qing.github.io/pic/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/48a460a8f846d6a45edbb97323e43634.png">
+<meta property="og:image" content="https://7qing.github.io/pic/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/76ae1bed0326e46ffde1e910d3c51f42.png">
+<meta property="og:image" content="https://7qing.github.io/pic/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/04613b08bc1a4dcf88a8b4538e1fb65b.png">
+<meta property="og:image" content="https://7qing.github.io/pic/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/b955d5545be0eb6663cfe6168677530b.png">
+<meta property="og:image" content="https://7qing.github.io/pic/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/06e0473c31e4f344d476dc1facdfaa9d.png">
+<meta property="article:published_time" content="2024-09-01T18:53:21.000Z">
+<meta property="article:modified_time" content="2025-06-15T16:06:58.000Z">
+<meta property="article:author" content="7qing">
+<meta property="article:tag" content="OS">
+<meta property="article:tag" content="阅读笔记">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://7qing.github.io/pic/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/20220807220609.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/logo.png">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/logo.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/logo.png">
+        
+      
+    
+    <!-- title -->
+    <title>CSAPP_阅读笔记_10_系统级I/O</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="顶部" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/7qing">项目</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="上一篇" href="/2024/09/02/CSAPP/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-11-%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2024/08/31/CSAPP/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-9-%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://7qing.github.io/2024/09/02/CSAPP/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://7qing.github.io/2024/09/02/CSAPP/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/&text=CSAPP_阅读笔记_10_系统级I/O"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://7qing.github.io/2024/09/02/CSAPP/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/&title=CSAPP_阅读笔记_10_系统级I/O"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://7qing.github.io/2024/09/02/CSAPP/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/&is_video=false&description=CSAPP_阅读笔记_10_系统级I/O"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=CSAPP_阅读笔记_10_系统级I/O&body=Check out this article: https://7qing.github.io/2024/09/02/CSAPP/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://7qing.github.io/2024/09/02/CSAPP/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/&title=CSAPP_阅读笔记_10_系统级I/O"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://7qing.github.io/2024/09/02/CSAPP/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/&title=CSAPP_阅读笔记_10_系统级I/O"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://7qing.github.io/2024/09/02/CSAPP/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/&title=CSAPP_阅读笔记_10_系统级I/O"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://7qing.github.io/2024/09/02/CSAPP/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/&title=CSAPP_阅读笔记_10_系统级I/O"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://7qing.github.io/2024/09/02/CSAPP/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/&name=CSAPP_阅读笔记_10_系统级I/O&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://7qing.github.io/2024/09/02/CSAPP/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/&t=CSAPP_阅读笔记_10_系统级I/O"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-Unix-I-O"><span class="toc-number">1.</span> <span class="toc-text">1.Unix I&#x2F;O</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%87%E4%BB%B6"><span class="toc-number">1.0.1.</span> <span class="toc-text">文件</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%89%93%E5%BC%80%E5%92%8C%E5%85%B3%E9%97%AD%E6%96%87%E4%BB%B6"><span class="toc-number">2.</span> <span class="toc-text">2.打开和关闭文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E8%AF%BB%E5%92%8C%E5%86%99%E6%96%87%E4%BB%B6"><span class="toc-number">3.</span> <span class="toc-text">3.读和写文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E7%94%A8-RIO-%E5%8C%85%E5%81%A5%E5%A3%AE%E5%9C%B0%E8%AF%BB%E5%86%99"><span class="toc-number">4.</span> <span class="toc-text">4.用 RIO 包健壮地读写</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-RIO-%E7%9A%84%E6%97%A0%E7%BC%93%E5%86%B2%E7%9A%84%E8%BE%93%E5%85%A5%E8%BE%93%E5%87%BA%E5%87%BD%E6%95%B0"><span class="toc-number">4.0.1.</span> <span class="toc-text">4.1 RIO 的无缓冲的输入输出函数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-RIO-%E7%9A%84%E5%B8%A6%E7%BC%93%E5%86%B2%E7%9A%84%E8%BE%93%E5%85%A5%E5%87%BD%E6%95%B0"><span class="toc-number">4.0.2.</span> <span class="toc-text">4.2 RIO 的带缓冲的输入函数</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E8%AF%BB%E5%8F%96%E6%96%87%E4%BB%B6%E5%85%83%E6%95%B0%E6%8D%AE"><span class="toc-number">5.</span> <span class="toc-text">5.读取文件元数据</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E8%AF%BB%E5%8F%96%E7%9B%AE%E5%BD%95%E5%86%85%E5%AE%B9"><span class="toc-number">6.</span> <span class="toc-text">6.读取目录内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E5%85%B1%E4%BA%AB%E6%96%87%E4%BB%B6"><span class="toc-number">7.</span> <span class="toc-text">7.共享文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-I-O-%E9%87%8D%E5%AE%9A%E5%90%91"><span class="toc-number">8.</span> <span class="toc-text">8.I&#x2F;O 重定向</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E6%A0%87%E5%87%86-I-O"><span class="toc-number">9.</span> <span class="toc-text">9.标准 I&#x2F;O</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E7%BB%BC%E5%90%88-%E6%88%91%E8%AF%A5%E4%BD%BF%E7%94%A8%E5%93%AA%E4%BA%9B-1-0-%E5%87%BD%E6%95%B0"><span class="toc-number">10.</span> <span class="toc-text">9.综合:我该使用哪些 1&#x2F;0 函数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93%EF%BC%9A"><span class="toc-number">11.</span> <span class="toc-text">总结：</span></a></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        CSAPP_阅读笔记_10_系统级I/O
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">7qing</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2024-09-01T18:53:21.000Z" class="dt-published" itemprop="datePublished">2024-09-02</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/CSAPP/">CSAPP</a>
+    </div>
+
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/OS/" rel="tag">OS</a>, <a class="p-category" href="/tags/%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0/" rel="tag">阅读笔记</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <p>在 Unix 系统中，是通过使用由内核提供的系统级 Unix I&#x2F;O 函数来实现这些较高级别的 I&#x2F;0 函数的。大多数时候，高级别 IO 函数工作良好，没有必要直接使用 Unix I&#x2F;O。那么为什么还要麻烦地学习 Unix I&#x2F;O 呢?</p>
+<ul>
+<li>了解 UnixIO 将帮助你理解其他的系统概念。I&#x2F;O 是系统操作不可或缺的一部分，因此我们经常遇到 IO 和其他系统概念之间的循环依赖。例如，I&#x2F;O 在进程的创建和执行中扮演着关键的角色。反过来，进程创建又在不同进程间的文件共享中扮演着关键角色。因此，要真正理解 I&#x2F;O，你必须理解进程，反之亦然。在对存储器层次结构、链接和加载、进程以及虚拟存储器的讨论中，我们已经接触了 I0 的某些方面。既然你对这些概念有了比较好的理解，我们就能闭合这个循环，更加深入地研究 I&#x2F;O。</li>
+<li>有时你除了使用 Unix I&#x2F;O 以外别无选择。在某些重要的情况下，使用高级 I&#x2F;O 函数不太可能，或者不太合适。例如，标准 I&#x2F;O 库没有提供读取文件元数据的方式，如文件大小或文件创建时间。另外，I&#x2F;O 库还存在一些问题，使得用它来进行网络编程非常冒险。</li>
+</ul>
+<h2 id="1-Unix-I-O"><a href="#1-Unix-I-O" class="headerlink" title="1.Unix I&#x2F;O"></a>1.Unix I&#x2F;O</h2><p>​ 一个 Unix 文件就是一个 m 个字节的序列:</p>
+<p>$$<br>B_0,B_1,…,B_k,…,B_{m-1}<br>$$</p>
+<p>​ 所有的 IO 设备，如网络、磁盘和终端，都被模型化为<strong>文件</strong>，而所有的输入和输出都被当做对相应文件的读和写来执行。这种将设备优雅地映射为文件的方式，允许 Unix 内核引出一个简单、低级的应用接口，称为 Unix I&#x2F;O，这使得所有的输入和输出都能以一种统一且一致的方式来执行:</p>
+<ul>
+<li><p>打开文件。一个应用程序通过要求内核打开相应的文件，来宣告它想要访问一个 IO 设备。内核返回一个小的非负整数，叫做描述符，它在后续对此文件的所有操作中标识这个文件。内核记录有关这个打开文件的所有信息。应用程序只需记住这个描述符。</p>
+<p>​ Unix 外壳创建的每个进程开始时都有三个打开的文件:</p>
+<ul>
+<li>标准输入(描述符为 0)</li>
+<li>标准输出(描述符为 1)</li>
+<li>标准错误(描述符为 2)</li>
+</ul>
+<p>头文件&lt;unistd.h&gt;定义了常量</p>
+<ul>
+<li>STDIN_FILENO</li>
+<li>STDOUT_FILENO</li>
+<li>STDERR_FILENO</li>
+</ul>
+<p>它们可用来代替显式的描述符值。</p>
+</li>
+<li><p>改变当前的文件位置。对于每个打开的文件，内核保持着一个文件位置 k，初始为 0。这个<br>文件位置是从文件开头起始的字节偏移量。应用程序能够通过执行 seek 操作，显式地设置<br>文件的当前位置为 k。</p>
+</li>
+<li><p>读写文件。一个读操作就是从文件拷贝 n&gt;0 个字节到存储器，从当前文件位置 k 开始<br>然后将 k 增加到 k+n。给定一个大小为 m 字节的文件，当 k&gt;m 时执行读操作会触发一<br>个称为 end-of-file(EOF)的条件，应用程序能检测到这个条件。在文件结尾处并没有明确的“EOF 符号”</p>
+<p>​ 类似地，写操作就是从存储器拷贝 n&gt;0 个字节到一个文件，从当前文件位置 k 开始然后更新 k。</p>
+</li>
+<li><p>关闭文件。当应用完成了对文件的访问之后，它就通知内核关闭这个文件。作为响应，内核释放文件打开时创建的数据结构，并将这个描述符恢复到可用的描述符池中。无论一个进程因为何种原因终止时，内核都会关闭所有打开的文件并释放它们的存储器资源。</p>
+</li>
+</ul>
+<h4 id="文件"><a href="#文件" class="headerlink" title="文件"></a>文件</h4><p>每个 Linux 文件都有一个表征其在系统中角色的类型：</p>
+<ul>
+<li>常规文件（Regular File）：对于应用程序来说，常规文件分为仅包含 ASCII 或 Unicode 字符的文本文件（Text File）和二进制文件（Binary File）；但对于内核而言，两者没有区别。Linux 文本文件由一系列文本行（Text Line）组成，其中每一行都以换行符<code>\n</code>结尾；</li>
+<li>目录（Directory）：目录是由链接（Link）数组构成的文件。链接将一个文件名映射到一个文件，该文件可能是另一个目录（如下图所示）。每个目录中至少包含两个链接：<code>.</code>指向目录本身，而<code>..</code>指向上级目录；</li>
+<li>Socket：用于通过网络与另一个进程通信的文件。</li>
+</ul>
+<p><img src="/pic/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/20220807220609.png"></p>
+<h2 id="2-打开和关闭文件"><a href="#2-打开和关闭文件" class="headerlink" title="2.打开和关闭文件"></a>2.打开和关闭文件</h2><p>​ 进程是通过调用 open 函数来打开一个已存在的文件或者创建一个新文件的：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#<span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/types.h&gt;</span></span></span><br><span class="line">#<span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/stat.h&gt;</span></span></span><br><span class="line">#<span class="meta">#<span class="keyword">include</span> <span class="string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">open</span><span class="params">(<span class="type">char</span> *filename, <span class="type">int</span> flags, <span class="type">mode_t</span> mode)</span>;</span><br><span class="line"><span class="comment">// Returns: new file descriptor if OK, −1 on error</span></span><br></pre></td></tr></table></figure>
+
+<p>返回的文件描述符(fd)是进程当前未打开的最小描述符。参数<code>flags</code>指示进程如何访问文件：</p>
+<ul>
+<li><code>O_RDONLY</code>：只读</li>
+<li><code>O_WRONLY</code>：只写</li>
+<li><code>O_RDWR</code>：读写</li>
+</ul>
+<p>该参数还可以与一个或多个位掩码进行或（<code>OR</code>）运算，这些位掩码提供写入的附加说明：</p>
+<ul>
+<li><code>O_CREAT</code>：如果文件不存在，则创建一个空文件；</li>
+<li><code>O_TRUNC</code>：如果文件已经存在，则清空文件内容；</li>
+<li><code>O_APPEND</code>：在每次写入操作之前，将文件位置设置为文件末尾。</li>
+</ul>
+<p>若文件已存在，参数<code>mode</code>应设为 0；反之，则设为新文件的访问权限位，可选项如下图所示：</p>
+<p><img src="/pic/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/6d1a7134c26b06592ac25b12c73d1a97.png"></p>
+<p>​ 作为上下文的一部分，每个进程都有一个 umask，它是通过调用 umask 函数来设置的。当进程通过带某个 mode 参数的 open 函数调用来创建一个新文件时，文件的访问权限位被设置为 mode&amp; ~umask。例如，假设我们给定下面的 mode 和 umask 默认值:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#<span class="meta">#<span class="keyword">define</span> DEF_MODE   S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH</span></span><br><span class="line">#<span class="meta">#<span class="keyword">define</span> DEF_UMASK  S_IWGRP|S_IWOTH</span></span><br><span class="line"></span><br><span class="line">umask(DEF_UMASK);</span><br><span class="line">fd = Open(<span class="string">&quot;foo.txt&quot;</span>, O_CREAT|O_TRUNC|O_WRONLY, DEF_MODE);</span><br></pre></td></tr></table></figure>
+
+<p>​ 最后，进程通过调用 <code>close</code>函数关闭一个打开的文件,若文件描述符已关闭将引发错误:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#<span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">close</span><span class="params">(<span class="type">int</span> fd)</span>;</span><br><span class="line"><span class="comment">// Returns: 0 if OK, −1 on error</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="3-读和写文件"><a href="#3-读和写文件" class="headerlink" title="3.读和写文件"></a>3.读和写文件</h2><p>​ 应用程序分别调用<code>read</code>和<code>write</code>函数来执行输入和输出：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#<span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="type">ssize_t</span> <span class="title function_">read</span><span class="params">(<span class="type">int</span> fd, <span class="type">void</span> *buf, <span class="type">size_t</span> n)</span>;</span><br><span class="line"><span class="comment">// Returns: number of bytes read if OK, 0 on EOF, −1 on error</span></span><br><span class="line"><span class="type">ssize_t</span> <span class="title function_">write</span><span class="params">(<span class="type">int</span> fd, <span class="type">const</span> <span class="type">void</span> *buf, <span class="type">size_t</span> n)</span>;</span><br><span class="line"><span class="comment">// Returns: number of bytes written if OK, −1 on error</span></span><br></pre></td></tr></table></figure>
+
+<p>​ <code>read</code>函数从描述符为<code>fd</code>的当前文件位置复制最多<code>n</code>个字节到内存中<code>buf</code>指向的位置，<code>write</code>函数则从内存中<code>buf</code>指向的位置复制最多<code>n</code>个字节到参数<code>fd</code>的当前位置。示例程序使用上述两种函数将标准输入以字节为单位复制到标准输出：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">#<span class="meta">#<span class="keyword">include</span> <span class="string">&quot;csapp.h&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">char</span> c;</span><br><span class="line">    <span class="keyword">while</span>(Read(STDIN_FILENO, &amp;c, <span class="number">1</span>) != <span class="number">0</span>)</span><br><span class="line">        Write(STDOUT_FILENO, &amp;c, <span class="number">1</span>);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>​ <strong>ssizet 和 sizet 有些什么区别?</strong><br>​ 你可能已经注意到了，read 函数有一个 sizet 的输入参数和一个 ssizet 的返回值。那么这两种类型之间有什么区别呢?size t 被定义为 unsigned int，而 ssize t(有符号的大小)被定义为 int。read 函数返回一个有符号的大小，而不是一个无符号的大小，这是因为出错时它必须返回一 1。有趣的是，返回一个-1 的可能性使得 read 的最大值减小了一半,从 4GB 减小到了 2GB。</p>
+<p>在某些情况下，读写操作传输的字节数小于应用程序请求的字节数。不足数（Short Count）的产生并不代表发生了错误，它可能由多种原因导致：</p>
+<ul>
+<li>读取时遇到 EOF：若我们对一个 20 字节的文件执行<code>read(fd, *buf, 50)</code>，那么第一次调用将返回一个 20 的不足数，第二次调用则返回 0（EOF）；</li>
+<li>从终端读取文本行：若打开的文件是终端设备（即键盘和显示器），那么每次<code>read</code>调用都将传输一个文本行并返回一个与文本行大小相等的不足数；</li>
+<li>读写 Socket：若打开的文件是 Socket，那么内部缓冲区限制和网络延迟将使读写操作返回不足数。</li>
+</ul>
+<p>因此除遇到 EOF 外，读写磁盘文件不会导致不足数的产生。但如果我们想要构建健壮而可靠的网络应用程序，就必须重复调用<code>read</code>和<code>write</code>以保证所有请求的字节均已被传输。</p>
+<h2 id="4-用-RIO-包健壮地读写"><a href="#4-用-RIO-包健壮地读写" class="headerlink" title="4.用 RIO 包健壮地读写"></a>4.用 RIO 包健壮地读写</h2><p>​ **RIO(Robust I0，健壮的 I&#x2F;O)**会自动为你处理上文中所述的不足值。在像网络程序这样容易出现不足值的应用中，RIO 包提供了方便、健壮和高效的 IO。RIO 提供了两类不同的函数:</p>
+<ul>
+<li>无缓冲的输入输出函数。这些函数直接在存储器和文件之间传送数据，没有应用级缓冲<br>它们对将二进制数据读写到网络和从网络读写二进制数据尤其有用。</li>
+<li>带缓冲的输入函数。从应用程序级别的缓冲区中读取文本行和二进制数据，与标准 I&#x2F;O（如<code>printf</code>）函数类似。该函数是**线程安全（Thread-safe）**的，并且可以对同一描述符任意交错（Interleave）。例如，我们可以从描述符中读取一些文本行，然后读取一些二进制数据，最后再读取一些文本行。</li>
+</ul>
+<h4 id="4-1-RIO-的无缓冲的输入输出函数"><a href="#4-1-RIO-的无缓冲的输入输出函数" class="headerlink" title="4.1 RIO 的无缓冲的输入输出函数"></a>4.1 RIO 的无缓冲的输入输出函数</h4><p>​ 通过调用<code>rio_readn</code>和 <code>rio_writen</code>函数，应用程序可以在存储器和文件之间直接传送数据。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#<span class="meta">#<span class="keyword">include</span> <span class="string">&quot;csapp.h&quot;</span></span></span><br><span class="line"><span class="type">ssize_t</span> <span class="title function_">rio_readn</span><span class="params">(<span class="type">int</span> fd, <span class="type">void</span> *usrbuf, <span class="type">size_t</span> n)</span>;</span><br><span class="line"><span class="type">ssize_t</span> <span class="title function_">rio_writen</span><span class="params">(<span class="type">int</span> fd, <span class="type">void</span> *usrbuf, <span class="type">size_t</span> n)</span>;</span><br><span class="line"><span class="comment">// Returns: number of bytes transferred if OK, 0 on EOF (rio_readn only), −1 on error</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><code>rio_readn</code>函数从参数<code>fd</code>的当前文件位置复制最多<code>n</code>个字节到内存中<code>usrbuf</code>指向的位置，<code>rio_writen</code>函数则从内存中<code>usrbuf</code>指向的位置复制最多<code>n</code>个字节到参数<code>fd</code>的当前位置。前者只有在遇到 EOF 时返回不足数，后者则从不返回不足数。</p>
+<p>若上述函数被应用程序的信号处理程序的返回中断，它们会重新调用<code>read</code>和<code>write</code>函数：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">ssize_t</span> <span class="title function_">rio_readn</span><span class="params">(<span class="type">int</span> fd, <span class="type">void</span> *usrbuf, <span class="type">size_t</span> n)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">size_t</span> nleft = n;</span><br><span class="line">    <span class="type">ssize_t</span> nread;</span><br><span class="line">    <span class="type">char</span> *bufp = usrbuf;</span><br><span class="line">    <span class="keyword">while</span> (nleft &gt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> ((nread = read(fd, bufp, nleft)) &lt; <span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> (errno == EINTR) <span class="comment">/* Interrupted by sig handler return */</span></span><br><span class="line">                nread = <span class="number">0</span>;      <span class="comment">/* and call read() again */</span></span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                <span class="keyword">return</span> <span class="number">-1</span>;      <span class="comment">/* errno set by read() */</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (nread == <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">break</span>;              <span class="comment">/* EOF */</span></span><br><span class="line">        nleft -= nread;</span><br><span class="line">        bufp += nread;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> (n - nleft);         <span class="comment">/* Return &gt;= 0 */</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">ssize_t</span> <span class="title function_">rio_writen</span><span class="params">(<span class="type">int</span> fd, <span class="type">void</span> *usrbuf, <span class="type">size_t</span> n)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">size_t</span> nleft = n;</span><br><span class="line">    <span class="type">ssize_t</span> nwritten;</span><br><span class="line">    <span class="type">char</span> *bufp = usrbuf;</span><br><span class="line">    <span class="keyword">while</span> (nleft &gt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> ((nwritten = read(fd, bufp, nleft)) &lt; <span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> (errno == EINTR) <span class="comment">/* Interrupted by sig handler return */</span></span><br><span class="line">                nwritten = <span class="number">0</span>;   <span class="comment">/* and call write() again */</span></span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                <span class="keyword">return</span> <span class="number">-1</span>;      <span class="comment">/* errno set by write() */</span></span><br><span class="line">        &#125;</span><br><span class="line">        nleft -= nwritten;</span><br><span class="line">        bufp += nwritten;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> n;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="4-2-RIO-的带缓冲的输入函数"><a href="#4-2-RIO-的带缓冲的输入函数" class="headerlink" title="4.2 RIO 的带缓冲的输入函数"></a>4.2 RIO 的带缓冲的输入函数</h4><p>​ 假设我们需要编写一个计算文本文件行数的程序，最简单的方法便是调用<code>read</code>函数每次读取一个字节并检查是否有换行符。但由于<code>read</code>是系统调用，频繁的上下文切换将导致程序效率低下。</p>
+<p>​ 更好的方法是调用包装函数<code>rio_readlineb</code>从内部读取缓冲区（Read Buffer）复制文本行，只有当缓冲区为空时才调用<code>read</code>以重新填充缓冲区。RIO<em>R<strong>I</strong>O</em> 包还为同时包含文本行和二进制数据的文件（如 HTTP 响应）提供了<code>rio_readn</code>函数的有缓冲版本，即<code>rio_readnb</code>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#<span class="meta">#<span class="keyword">include</span> <span class="string">&quot;csapp.h&quot;</span></span></span><br><span class="line"><span class="type">ssize_t</span> <span class="title function_">rio_readlineb</span><span class="params">(<span class="type">rio_t</span> *rp, <span class="type">void</span> *usrbuf, <span class="type">size_t</span> maxlen)</span>;</span><br><span class="line"><span class="type">ssize_t</span> <span class="title function_">rio_readnb</span><span class="params">(<span class="type">rio_t</span> *rp, <span class="type">void</span> *usrbuf, <span class="type">size_t</span> n)</span>;</span><br><span class="line"><span class="comment">// Returns: number of bytes read if OK, 0 on EOF, −1 on error</span></span><br></pre></td></tr></table></figure>
+
+<p>​ 在调用上述两种有缓冲的输入函数前，我们需要为每个打开文件描述符调用一次<code>rio_readinitb</code>。该函数将描述符<code>fd</code>与地址<code>rp</code>处的读取缓冲区（类型为<code>rio_t</code>）相关联：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">#<span class="meta">#<span class="keyword">define</span> RIO_BUFSIZE 8192</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    <span class="type">int</span> rio_fd;                <span class="comment">/* Descriptor for this internal buf */</span></span><br><span class="line">    <span class="type">int</span> rio_cnt;               <span class="comment">/* Unread bytes in internal buf */</span></span><br><span class="line">    <span class="type">char</span> *rio_bufptr;          <span class="comment">/* Next unread byte in internal buf */</span></span><br><span class="line">    <span class="type">char</span> rio_buf[RIO_BUFSIZE]; <span class="comment">/* Internal buffer */</span></span><br><span class="line">&#125; <span class="type">rio_t</span>;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">rio_readinitb</span><span class="params">(<span class="type">rio_t</span> *rp, <span class="type">int</span> fd)</span></span><br><span class="line">&#123;</span><br><span class="line">    rp-&gt;rio_fd = fd;</span><br><span class="line">    rp-&gt;rio_cnt = <span class="number">0</span>;</span><br><span class="line">    rp-&gt;rio_bufptr = rp-&gt;rio_buf;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>​ RIO 包读取例程的核心是<code>rio_read</code>函数，它其实是<code>read</code>函数的有缓冲版本。若读取缓冲区中的未读字节数<code>rp-&gt;rio_cnt</code>为 0，则在循环内调用<code>read</code>函数对其填充；若读取缓冲区非空，则调用<code>memcpy</code>函数将<code>min(n, rp-&gt;rio_cnt)</code>字节从缓冲区复制到<code>usrbuf</code>指向的内存位置：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">ssize_t</span> <span class="title function_">rio_read</span><span class="params">(<span class="type">rio_t</span> *rp, <span class="type">char</span> *usrbuf, <span class="type">size_t</span> n)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> cnt;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (rp-&gt;rio_cnt &lt;= <span class="number">0</span>)</span><br><span class="line">    &#123; <span class="comment">/* Refill if buf is empty */</span></span><br><span class="line">        rp-&gt;rio_cnt = read(rp-&gt;rio_fd, rp-&gt;rio_buf,</span><br><span class="line">                           <span class="keyword">sizeof</span>(rp-&gt;rio_buf));</span><br><span class="line">        <span class="keyword">if</span> (rp-&gt;rio_cnt &lt; <span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> (errno != EINTR)           <span class="comment">/* Interrupted by sig handler return */</span></span><br><span class="line">                <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (rp-&gt;rio_cnt == <span class="number">0</span>)        <span class="comment">/* EOF */</span></span><br><span class="line">            <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            rp-&gt;rio_bufptr = rp-&gt;rio_buf; <span class="comment">/* Reset buffer ptr */</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Copy min(n, rp-&gt;rio_cnt) bytes from internal buf to user buf */</span></span><br><span class="line">    cnt = n;</span><br><span class="line">    <span class="keyword">if</span> (rp-&gt;rio_cnt &lt; n)</span><br><span class="line">        cnt = rp-&gt;rio_cnt;</span><br><span class="line">    <span class="built_in">memcpy</span>(usrbuf, rp-&gt;rio_bufptr, cnt);</span><br><span class="line">    rp-&gt;rio_bufptr += cnt;</span><br><span class="line">    rp-&gt;rio_cnt -= cnt;</span><br><span class="line">    <span class="keyword">return</span> cnt;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>​ 对于一个应用程序，rio_read 函数和 Unix read 函数有同样的语义。在出错时，它返回值 -1，并且适当地设置 errno。在 EOF 时，它返回值 0。如果要求的字节数超过了读缓冲区内未读的字节的数量，它会返回一个不足值。两个函数的相似性使得很容易通过用 rio_read 代替 read 来创建不同类型的带缓冲的读函数。例如，用 rioread 代替 read。</p>
+<p>​ 实际上，<code>rio_readnb</code>与<code>rio_readn</code>具有完全相同的结构，只不过我们用<code>rio_read</code>替换了<code>read</code>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">ssize_t</span> <span class="title function_">rio_readnb</span><span class="params">(<span class="type">rio_t</span> *rp, <span class="type">void</span> *usrbuf, <span class="type">size_t</span> n)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">size_t</span> nleft = n;</span><br><span class="line">    <span class="type">ssize_t</span> nread;</span><br><span class="line">    <span class="type">char</span> *bufp = usrbuf;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (nleft &gt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> ((nread = rio_read(rp, bufp, nleft)) &lt; <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;  <span class="comment">/* errno set by read() */</span></span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (nread == <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">break</span>; <span class="comment">/* EOF */</span></span><br><span class="line">        nleft -= nread;</span><br><span class="line">        bufp += nread;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> (n - nleft); <span class="comment">/* return &gt;= 0 */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>类似地，<code>rio_readlineb</code>函数从文件<code>rp</code>中读取一个文本行并将其复制到内存中<code>usrbuf</code>指向的位置。循环内每次对<code>rio_read</code>的调用都会把读取缓冲区中的一个字节复制到<code>&amp;c</code>，然后检查它是否是换行符：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">ssize_t</span> <span class="title function_">rio_readlineb</span><span class="params">(<span class="type">rio_t</span> *rp, <span class="type">void</span> *usrbuf, <span class="type">size_t</span> maxlen)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> n, rc;</span><br><span class="line">    <span class="type">char</span> c, *bufp = usrbuf;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (n = <span class="number">1</span>; n &lt; maxlen; n++)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span> ((rc = rio_read(rp, &amp;c, <span class="number">1</span>)) == <span class="number">1</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            *bufp++ = c;  <span class="comment">/* Copy rp to user buf */</span></span><br><span class="line">            <span class="keyword">if</span> (c == <span class="string">&#x27;\n&#x27;</span>)</span><br><span class="line">            &#123;</span><br><span class="line">                n++;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span> (rc == <span class="number">0</span>)</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> (n == <span class="number">1</span>)</span><br><span class="line">                <span class="keyword">return</span> <span class="number">0</span>; <span class="comment">/* EOF, no data read */</span></span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">                <span class="keyword">break</span>;    <span class="comment">/* EOF, some data was read */</span></span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;    <span class="comment">/* Error */</span></span><br><span class="line">    &#125;</span><br><span class="line">    *bufp = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">return</span> n - <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="5-读取文件元数据"><a href="#5-读取文件元数据" class="headerlink" title="5.读取文件元数据"></a>5.读取文件元数据</h2><p>​ 应用程序能够通过调用 <code>stat </code>和 <code>fstat</code> 函数，检索到关于文件的信息(有时也称为文件的元数据(metadata))。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#<span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line">#<span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/stat.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">stat</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *filename, <span class="keyword">struct</span> stat *buf)</span>;</span><br><span class="line"><span class="type">int</span> <span class="title function_">fstat</span><span class="params">(<span class="type">int</span> fd, <span class="keyword">struct</span> stat *buf)</span>;</span><br><span class="line"><span class="comment">// Returns: 0 if OK, −1 on error</span></span><br></pre></td></tr></table></figure>
+
+<p>​ 函数<code>stat</code>使用文件名<code>*filename</code>作为输入，将信息填写到<code>stat</code>结构体中。<code>fstat</code>与之类似，但它的参数是文件描述符<code>fd</code>。结构体<code>stat</code>如下所示，我们只需关注字段<code>st_mode</code>和<code>st_size</code>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* Metadata returned by the stat and fstat functions */</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">stat</span>&#123;</span></span><br><span class="line">	<span class="type">dev_t</span>	st_dev;			<span class="comment">/* Device */</span></span><br><span class="line">	<span class="type">ino_t</span>  	st_ino;			<span class="comment">/* inode */</span></span><br><span class="line">	<span class="type">mode_t</span> 	st_mode;		<span class="comment">/* Protection and file type */</span></span><br><span class="line">	<span class="type">nlink_t</span>	st_nlink;		<span class="comment">/* Number of hard links */</span></span><br><span class="line">	<span class="type">uid_t</span>	st_uid;			<span class="comment">/*User ID of owner */</span></span><br><span class="line">	<span class="type">gid_t</span>	st_gid;			<span class="comment">/*Group ID of owner */</span></span><br><span class="line">	<span class="type">dev_t</span>	st_rdev;		<span class="comment">/*Device type(if inode device)*/</span></span><br><span class="line">	<span class="type">off_t</span>	st_size;		<span class="comment">/* Total size,in bytes */</span></span><br><span class="line">	<span class="type">unsigned</span> <span class="type">long</span> st_blksize;	<span class="comment">/*Blocksize for filesystem I/O */</span></span><br><span class="line">	<span class="type">unsigned</span> <span class="type">long</span> st_blocks;	<span class="comment">/*Number of blocks allocated */</span></span><br><span class="line">	<span class="type">time_t</span>	st_atime;			<span class="comment">/* Time of last access */</span></span><br><span class="line">	<span class="type">time_t</span>	st_mtime;			<span class="comment">/* Time of last modification */</span></span><br><span class="line">	<span class="type">time_t</span>	st_ctime;			<span class="comment">/* Time of last change */</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>​ <code>	st_size</code>包含了文件的大小，而<code>st_mode</code>则包含了文件的访问权限和类型。。Unix 识别大量不同的文件类型。<strong>普通文件</strong>包括某种类型<strong>的二进制</strong>或<strong>文本数据</strong>。对于内核而言，文本文件和二进制文件毫无区别。目录文件包含关于其他文件的信息。套接字是一种用来通过网络与其他进程通信的文件。Unix 提供的宏指令根据 stmode 成员来确定文件的类型。下图列出了这些宏的一个子集。</p>
+<p><img src="/pic/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/477e0109e741db37bb3a9148ea7550a6.png"></p>
+<h2 id="6-读取目录内容"><a href="#6-读取目录内容" class="headerlink" title="6.读取目录内容"></a>6.读取目录内容</h2><p>​ 应用程序调用<code>opendir</code>和<code>readdir</code>函数读取目录中的内容：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#<span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/types.h&gt;</span></span></span><br><span class="line">#<span class="meta">#<span class="keyword">include</span> <span class="string">&lt;dirent.h&gt;</span></span></span><br><span class="line">DIR *<span class="title function_">opendir</span><span class="params">(<span class="type">const</span> <span class="type">char</span> *name)</span>;</span><br><span class="line"><span class="comment">// Returns: pointer to handle if OK, NULL on error</span></span><br><span class="line">#<span class="meta">#<span class="keyword">include</span> <span class="string">&lt;dirent.h&gt;</span></span></span><br><span class="line"><span class="keyword">struct</span> dirent *<span class="title function_">readdir</span><span class="params">(DIR *dirp)</span>;</span><br><span class="line"><span class="comment">// Returns: pointer to next directory entry if OK, NULL if no more entries or error</span></span><br></pre></td></tr></table></figure>
+
+<p>​ 函数<code>opendir</code>以目录的路径名为参数，返回一个指向目录流（Directory Stream）的指针。流是对有序项目列表的抽象，此处指的是目录中条目的列表。函数<code>readdir</code>返回指向目录流中下一个条目的指针，每个条目都是一个<code>dirent</code>结构体：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">dirent</span> &#123;</span></span><br><span class="line">    <span class="type">ino_t</span> d_ino;       <span class="comment">/* inode number */</span></span><br><span class="line">    <span class="type">char</span>  d_name[<span class="number">256</span>]; <span class="comment">/* Filename */</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>​ <code>d_name</code>是文件名，<code>d_ino</code>是文件的 inode 数。当发生错误时，<code>readdir</code>返回<code>NULL</code>并设置<code>errno</code>。</p>
+<p>函数<code>closedir</code>关闭目录流并释放所有相关资源：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#<span class="meta">#<span class="keyword">include</span> <span class="string">&lt;dirent.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">closedir</span><span class="params">(DIR *dirp)</span>;</span><br><span class="line"><span class="comment">// Returns: 0 on success, −1 on error</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="7-共享文件"><a href="#7-共享文件" class="headerlink" title="7.共享文件"></a>7.共享文件</h2><p>​ 可以用许多不同的方式来共享 Unix 文件。除非你很清楚内核是如何表示打开的文件，否则文件共享的概念相当难懂。内核用三个相关的数据结构来表示打开的文件:</p>
+<ul>
+<li>描述符表(descriptor table)。每个进程都有它独立的描述符表，它的表项是由进程打开的文件描述符来索引的。每个打开的描述符表项指向文件表中的一个表项。</li>
+<li>文件表(fle table)。打开文件的集合是由一张文件表来表示的，所有的进程共享这张表。每个文件表的表项组成(针对我们的目的)包括有当前的文件位置、引用计数(referencecount)(即当前指向该表项的描述符表项数)，以及一个指向 v-node 表中对应表项的指针关闭一个描述符会减少相应的文件表表项中的引用计数。内核不会删除这个文件表表项，直到它的引用计数为零。</li>
+<li>v-node 表(v-node table)。同文件表一样，所有的进程共享这张 v-node 表。每个表项包含 stat 结构中的大多数信息，包括 stmode 和 stsize 成员。</li>
+</ul>
+<p><img src="/pic/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/48a460a8f846d6a45edbb97323e43634.png"></p>
+<p>​ 上图展示了一个示例，其中描述符 1 和 4 通过不同的打开文件表表项来引用两个不同的文件。这是一种典型的情况，没有共享文件，并且每个描述符对应一个不同的文件。</p>
+<p><img src="/pic/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/76ae1bed0326e46ffde1e910d3c51f42.png"></p>
+<p>​ 上图所示，多个描述符也可以通过不同的文件表表项来引用同一个文件。例如，如果以同一个 filename 调用 open 函数两次，就会发生这种情况。关键思想是每个描述符都有它自己的文件位置，所以对不同描述符的读操作可以从文件的不同位置获取数据。</p>
+<p><img src="/pic/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/04613b08bc1a4dcf88a8b4538e1fb65b.png"></p>
+<p>​ 我们也能理解父子进程是如何共享文件的。假设在调用 fork 之前，父进程有如图 10-11 所示的打开文件。然后，上图展示了调用 fork 后的情况。子进程有一个父进程描述符表的副本。父子进程共享相同的打开文件表集合，因此共享相同的文件位置。一个很重要的结果就是在内核删除相应文件表表项之前，父子进程必须都关闭了它们的描述符。</p>
+<h2 id="8-I-O-重定向"><a href="#8-I-O-重定向" class="headerlink" title="8.I&#x2F;O 重定向"></a>8.I&#x2F;O 重定向</h2><p>​ <code>dup2</code>函数将描述符表条目<code>oldfd</code>复制到<code>newfd</code>并覆盖其原始内容。如果<code>newfd</code>已经打开，则该函数在复制<code>oldfd</code>之前会先关闭<code>newfd</code>：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">#<span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="type">int</span> <span class="title function_">dup2</span><span class="params">(<span class="type">int</span> oldfd, <span class="type">int</span> newfd)</span>;</span><br><span class="line"><span class="comment">// Returns: nonnegative descriptor if OK, −1 on error</span></span><br></pre></td></tr></table></figure>
+
+<p>​ 假设某进程的打开文件数据结构如上图 10.12 所示。描述符 1（标准输出）指向文件 A（如终端），描述符 4 指向文件 B（如磁盘上的文件），文件 A 和 B 的<code>refcnt</code>均为 1。那么该进程调用函数<code>dup2(4, 1)</code>后情况变为：</p>
+<p><img src="/pic/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/b955d5545be0eb6663cfe6168677530b.png"></p>
+<p>​ 文件 A 被关闭，内核会删除其打开文件表和 v-node 表条目。两个描述符均指向文件 B，其<code>refcnt</code>已增加为 2。从现在开始，任何写入到标准输出的数据都会被重定向到文件 B。</p>
+<h2 id="9-标准-I-O"><a href="#9-标准-I-O" class="headerlink" title="9.标准 I&#x2F;O"></a>9.标准 I&#x2F;O</h2><p>​ ANSI C 定义了一组高级输人输出函数，称为标准 I0 库，为程序员提供了 Unix I&#x2F;0 的较高级别的替代。这个库(libc)提供了打开和关闭文件的函数(fopen 和 fclose)、读和写字节的函数(fread 和 fwrite)、读和写字符串的函数(fgets 和 fputs)，以及复杂的格式化的 I&#x2F;O 所数(scanf 和 printf)。<br>​ 标准 IO 库将一个打开的文件模型化为一个流。对于程序员而言，一个流就是一个指向 FILE 类型的结构的指针。每个 ANSIC 程序开始时都有三个打开的流 stdin、stdout 和 stderr，分别对应于标准输人、标准输出和标准错误:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#<span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="keyword">extern</span> FILE *<span class="built_in">stdin</span>;  <span class="comment">/* Standard input (descriptor 0) */</span></span><br><span class="line"><span class="keyword">extern</span> FILE *<span class="built_in">stdout</span>; <span class="comment">/* Standard output (descriptor 1) */</span></span><br><span class="line"><span class="keyword">extern</span> FILE *<span class="built_in">stderr</span>; <span class="comment">/* Standard error (descriptor 2) */</span></span><br></pre></td></tr></table></figure>
+
+<p>​ 类型为 FILE 的流是对文件描述符和流缓冲区的抽象。<strong>流缓冲区</strong>的目的和 RIO 读缓冲区的一样:就是使开销较高的 Unix I&#x2F;O 系统调用的数量尽可能的小。例如，假设我们有一个程序，它反复调用标准 IO 的 getc 函数，每次调用返回文件的下一个字符。当第一次调用 getc 时，库通过调用一次 read 函数来填充流缓冲区，然后将缓冲区中的第一个字节返回给应用程序。只要缓冲区中还有未读的字节，接下来对 getc 的调用就能直接从流缓冲区得到服务。</p>
+<h2 id="9-综合-我该使用哪些-1-0-函数"><a href="#9-综合-我该使用哪些-1-0-函数" class="headerlink" title="9.综合:我该使用哪些 1&#x2F;0 函数"></a>9.综合:我该使用哪些 1&#x2F;0 函数</h2><p>​ Unix I&#x2F;O、标准 I&#x2F;O 和 <em>Rio</em> 包函数之间的关系如下图所示：</p>
+<p><img src="/pic/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/06e0473c31e4f344d476dc1facdfaa9d.png"></p>
+<p>​ 那么我们应当使用哪种 I&#x2F;O 函数呢？以下是一些建议：</p>
+<ul>
+<li>尽可能使用标准 I&#x2F;O 函数，它们是在磁盘和终端上执行 I&#x2F;O 操作的最佳选择；</li>
+<li>不要使用<code>scanf</code>或<code>rio_readlineb</code>函数读取二进制文件，它们是专门为读取文本文件设计的；</li>
+<li>将标准 I&#x2F;O 函数用于 <strong>Socket</strong> 时可能会出现一些令人讨厌的问题，因此我们应当在网络编程时使用 <strong><em>Rio</em> 包函数。</strong></li>
+</ul>
+<h2 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h2><p>一切都是文件，都可以用 “”打开 open –&gt; 读写 write&#x2F;read –&gt; 关闭 close” 模式来操作。输入&#x2F;输出(I&#x2F;O) 是指主存和外部设备(如磁盘，终端，网络)之间拷贝数据过程。</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">首页</a></li>
+        
+          <li><a href="/categories/">分类</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+          <li><a href="/archives/">归档</a></li>
+        
+          <li><a href="/search/">搜索</a></li>
+        
+          <li><a target="_blank" rel="noopener" href="http://github.com/7qing">项目</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-Unix-I-O"><span class="toc-number">1.</span> <span class="toc-text">1.Unix I&#x2F;O</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%87%E4%BB%B6"><span class="toc-number">1.0.1.</span> <span class="toc-text">文件</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%89%93%E5%BC%80%E5%92%8C%E5%85%B3%E9%97%AD%E6%96%87%E4%BB%B6"><span class="toc-number">2.</span> <span class="toc-text">2.打开和关闭文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E8%AF%BB%E5%92%8C%E5%86%99%E6%96%87%E4%BB%B6"><span class="toc-number">3.</span> <span class="toc-text">3.读和写文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E7%94%A8-RIO-%E5%8C%85%E5%81%A5%E5%A3%AE%E5%9C%B0%E8%AF%BB%E5%86%99"><span class="toc-number">4.</span> <span class="toc-text">4.用 RIO 包健壮地读写</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-RIO-%E7%9A%84%E6%97%A0%E7%BC%93%E5%86%B2%E7%9A%84%E8%BE%93%E5%85%A5%E8%BE%93%E5%87%BA%E5%87%BD%E6%95%B0"><span class="toc-number">4.0.1.</span> <span class="toc-text">4.1 RIO 的无缓冲的输入输出函数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-RIO-%E7%9A%84%E5%B8%A6%E7%BC%93%E5%86%B2%E7%9A%84%E8%BE%93%E5%85%A5%E5%87%BD%E6%95%B0"><span class="toc-number">4.0.2.</span> <span class="toc-text">4.2 RIO 的带缓冲的输入函数</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E8%AF%BB%E5%8F%96%E6%96%87%E4%BB%B6%E5%85%83%E6%95%B0%E6%8D%AE"><span class="toc-number">5.</span> <span class="toc-text">5.读取文件元数据</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E8%AF%BB%E5%8F%96%E7%9B%AE%E5%BD%95%E5%86%85%E5%AE%B9"><span class="toc-number">6.</span> <span class="toc-text">6.读取目录内容</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E5%85%B1%E4%BA%AB%E6%96%87%E4%BB%B6"><span class="toc-number">7.</span> <span class="toc-text">7.共享文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-I-O-%E9%87%8D%E5%AE%9A%E5%90%91"><span class="toc-number">8.</span> <span class="toc-text">8.I&#x2F;O 重定向</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E6%A0%87%E5%87%86-I-O"><span class="toc-number">9.</span> <span class="toc-text">9.标准 I&#x2F;O</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E7%BB%BC%E5%90%88-%E6%88%91%E8%AF%A5%E4%BD%BF%E7%94%A8%E5%93%AA%E4%BA%9B-1-0-%E5%87%BD%E6%95%B0"><span class="toc-number">10.</span> <span class="toc-text">9.综合:我该使用哪些 1&#x2F;0 函数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93%EF%BC%9A"><span class="toc-number">11.</span> <span class="toc-text">总结：</span></a></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://7qing.github.io/2024/09/02/CSAPP/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://7qing.github.io/2024/09/02/CSAPP/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/&text=CSAPP_阅读笔记_10_系统级I/O"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://7qing.github.io/2024/09/02/CSAPP/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/&title=CSAPP_阅读笔记_10_系统级I/O"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://7qing.github.io/2024/09/02/CSAPP/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/&is_video=false&description=CSAPP_阅读笔记_10_系统级I/O"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=CSAPP_阅读笔记_10_系统级I/O&body=Check out this article: https://7qing.github.io/2024/09/02/CSAPP/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://7qing.github.io/2024/09/02/CSAPP/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/&title=CSAPP_阅读笔记_10_系统级I/O"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://7qing.github.io/2024/09/02/CSAPP/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/&title=CSAPP_阅读笔记_10_系统级I/O"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://7qing.github.io/2024/09/02/CSAPP/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/&title=CSAPP_阅读笔记_10_系统级I/O"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://7qing.github.io/2024/09/02/CSAPP/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/&title=CSAPP_阅读笔记_10_系统级I/O"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://7qing.github.io/2024/09/02/CSAPP/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/&name=CSAPP_阅读笔记_10_系统级I/O&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://7qing.github.io/2024/09/02/CSAPP/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-10-%E7%B3%BB%E7%BB%9F%E7%BA%A7I-O/&t=CSAPP_阅读笔记_10_系统级I/O"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2024-2025
+    7qing
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/7qing">项目</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板！\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功！");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
