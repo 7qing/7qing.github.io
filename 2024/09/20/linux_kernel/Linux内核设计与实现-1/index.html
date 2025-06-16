@@ -6,24 +6,24 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-    <meta name="description" content="我们主要从这五方面入手，了解 linux 内核是如何运行的：   进程管理  内存管理  文件系统  设备驱动程序  网络   第 2 章 从内核出发​ 可以从内核网站中下载 Linux 的内核源码。可以使用uname -r查看内核 release 版本号。 123git clone git:&#x2F;&#x2F;git.kernel.org&#x2F;pub&#x2F;scm&#x2F;linux&#x2F;kernel&#x2F;git&#x2F;torvalds&#x2F;li">
+    <meta name="description" content="我们主要从这五方面入手，了解 linux 内核是如何运行的：   进程管理  内存管理  文件系统  设备驱动程序  网络   第 2 章 从内核出发 可以从内核网站中下载 Linux 的内核源码。可以使用uname -r查看内核 release 版本号。 123git clone git:&#x2F;&#x2F;git.kernel.org&#x2F;pub&#x2F;scm&#x2F;linux&#x2F;kernel&#x2F;git&#x2F;torvalds&#x2F;lin">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Linux内核设计与实现(1)">
 <meta property="og:url" content="https://7qing.github.io/2024/09/20/linux_kernel/Linux%E5%86%85%E6%A0%B8%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0-1/index.html">
 <meta property="og:site_name" content="7qing-blog">
-<meta property="og:description" content="我们主要从这五方面入手，了解 linux 内核是如何运行的：   进程管理  内存管理  文件系统  设备驱动程序  网络   第 2 章 从内核出发​ 可以从内核网站中下载 Linux 的内核源码。可以使用uname -r查看内核 release 版本号。 123git clone git:&#x2F;&#x2F;git.kernel.org&#x2F;pub&#x2F;scm&#x2F;linux&#x2F;kernel&#x2F;git&#x2F;torvalds&#x2F;li">
+<meta property="og:description" content="我们主要从这五方面入手，了解 linux 内核是如何运行的：   进程管理  内存管理  文件系统  设备驱动程序  网络   第 2 章 从内核出发 可以从内核网站中下载 Linux 的内核源码。可以使用uname -r查看内核 release 版本号。 123git clone git:&#x2F;&#x2F;git.kernel.org&#x2F;pub&#x2F;scm&#x2F;linux&#x2F;kernel&#x2F;git&#x2F;torvalds&#x2F;lin">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://7qing.github.io/2024/09/20/linux_kernel/Linux%E5%86%85%E6%A0%B8%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0-1/%E5%86%85%E6%A0%B8%E7%BB%93%E6%9E%84.png">
-<meta property="og:image" content="https://7qing.github.io/2024/09/20/linux_kernel/Linux%E5%86%85%E6%A0%B8%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0-1/%E5%86%85%E6%A0%B8%E7%BB%93%E6%9E%84.png">
+<meta property="og:image" content="https://7qing.github.io/Linux%E5%86%85%E6%A0%B8%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0(1)/%E5%86%85%E6%A0%B8%E7%BB%93%E6%9E%84.png">
+<meta property="og:image" content="https://7qing.github.io/Linux%E5%86%85%E6%A0%B8%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0(1)/%E5%86%85%E6%A0%B8%E7%BB%93%E6%9E%84.png">
 <meta property="article:published_time" content="2024-09-20T07:35:37.000Z">
-<meta property="article:modified_time" content="2025-06-15T17:02:20.000Z">
+<meta property="article:modified_time" content="2025-06-16T06:46:56.000Z">
 <meta property="article:author" content="7qing">
+<meta property="article:tag" content="OS">
 <meta property="article:tag" content="Linux">
 <meta property="article:tag" content="C&#x2F;C++">
-<meta property="article:tag" content="OS">
 <meta property="article:tag" content="程序设计">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://7qing.github.io/2024/09/20/linux_kernel/Linux%E5%86%85%E6%A0%B8%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0-1/%E5%86%85%E6%A0%B8%E7%BB%93%E6%9E%84.png">
+<meta name="twitter:image" content="https://7qing.github.io/Linux%E5%86%85%E6%A0%B8%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0(1)/%E5%86%85%E6%A0%B8%E7%BB%93%E6%9E%84.png">
     
     
       
@@ -184,7 +184,7 @@
 
   <div class="content e-content" itemprop="articleBody">
     <p>我们主要从这五方面入手，了解 linux 内核是如何运行的：</p>
-<p><img src="/2024/09/20/linux_kernel/Linux%E5%86%85%E6%A0%B8%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0-1/%E5%86%85%E6%A0%B8%E7%BB%93%E6%9E%84.png"></p>
+<p><img src="/./Linux%E5%86%85%E6%A0%B8%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0(1)/%E5%86%85%E6%A0%B8%E7%BB%93%E6%9E%84.png"></p>
 <ol>
 <li><p>进程管理</p>
 </li>
@@ -197,16 +197,16 @@
 <li><p>网络</p>
 </li>
 </ol>
-<h2 id="第-2-章-从内核出发"><a href="#第-2-章-从内核出发" class="headerlink" title="第 2 章 从内核出发"></a>第 2 章 从内核出发</h2><p>​ 可以从<a target="_blank" rel="noopener" href="https://www.kernel.org/">内核网站</a>中下载 Linux 的内核源码。可以使用<code>uname -r</code>查看内核 release 版本号。</p>
+<h2 id="第-2-章-从内核出发"><a href="#第-2-章-从内核出发" class="headerlink" title="第 2 章 从内核出发"></a>第 2 章 从内核出发</h2><p> 可以从<a href="./Linux%E5%86%85%E6%A0%B8%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0(1)/https://www.kernel.org/">内核网站</a>中下载 Linux 的内核源码。可以使用<code>uname -r</code>查看内核 release 版本号。</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git</span><br><span class="line">##更新到最新版本</span><br><span class="line">git pull</span><br></pre></td></tr></table></figure>
 
 <p>也可以直接使用如下命令直接 clone 最新版本。然后使用<code>git checkout</code>来切换分支</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git</span><br></pre></td></tr></table></figure>
 
-<h4 id="2-1-使用补丁"><a href="#2-1-使用补丁" class="headerlink" title="2.1 使用补丁"></a>2.1 使用补丁</h4><p>​ Linux 中一般使用补丁的形式对发布的代码进行修改</p>
+<h4 id="2-1-使用补丁"><a href="#2-1-使用补丁" class="headerlink" title="2.1 使用补丁"></a>2.1 使用补丁</h4><p> Linux 中一般使用补丁的形式对发布的代码进行修改</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">patch -p1 &lt; .../patch-x.y.z</span><br></pre></td></tr></table></figure>
 
-<h4 id="2-2-内核代码树"><a href="#2-2-内核代码树" class="headerlink" title="2.2 内核代码树"></a>2.2 内核代码树</h4><p>​ 内核源码树由很多目录组成，而大多数目录又包括更多的子目录，源码树的根目录以及子目录如下表所表示：</p>
+<h4 id="2-2-内核代码树"><a href="#2-2-内核代码树" class="headerlink" title="2.2 内核代码树"></a>2.2 内核代码树</h4><p> 内核源码树由很多目录组成，而大多数目录又包括更多的子目录，源码树的根目录以及子目录如下表所表示：</p>
 <table>
 <thead>
 <tr>
@@ -301,7 +301,7 @@
 </tbody></table>
 <p>COPYING 是内个许可证，CREDITS 是内核开发者列表。MAINTAINERS 是维护者列表</p>
 <h4 id="2-3-内核结构"><a href="#2-3-内核结构" class="headerlink" title="2.3 内核结构"></a>2.3 内核结构</h4><p>按功能，Linux 内核可以划分为 5 个不同的部分，每一部分处理一项明确的功能，同时又向其他内核组件提供这项功能。这种结构也反映到内核的源代码上——这 5 部分都形成了自己的子树。</p>
-<p><img src="/2024/09/20/linux_kernel/Linux%E5%86%85%E6%A0%B8%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0-1/%E5%86%85%E6%A0%B8%E7%BB%93%E6%9E%84.png" alt="内核结构"></p>
+<p><img src="/./Linux%E5%86%85%E6%A0%B8%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0(1)/%E5%86%85%E6%A0%B8%E7%BB%93%E6%9E%84.png" alt="内核结构"></p>
 <ol>
 <li><p>进程管理</p>
 </li>
@@ -360,7 +360,7 @@
 </ul>
 </li>
 </ul>
-<h2 id="第-3-章-进程管理"><a href="#第-3-章-进程管理" class="headerlink" title="第 3 章 进程管理"></a>第 3 章 进程管理</h2><h6 id="3-1-进程"><a href="#3-1-进程" class="headerlink" title="3.1 进程"></a>3.1 进程</h6><p><strong>每一个线程都拥有一个独立的程序计数器、进程栈、一组进程寄存器</strong>。<em>内核调度的对象是线程，而不是进程</em> (<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/8ff15d3a1dfd">从进程和线程了解浏览器的工作原理</a>)；在 Linux 中对线程和进程的区分度不是很大。线程之间共享虚拟内存，但是每个线程都拥有自己独立的虚拟处理器。每个进程都有自己的用户栈和内核栈，陷入内核时，将用户栈寄存器压入内核栈；出去时，重新返回用户栈寄存器，并清空内核栈–<strong>内核栈总是空的</strong></p>
+<h2 id="第-3-章-进程管理"><a href="#第-3-章-进程管理" class="headerlink" title="第 3 章 进程管理"></a>第 3 章 进程管理</h2><h6 id="3-1-进程"><a href="#3-1-进程" class="headerlink" title="3.1 进程"></a>3.1 进程</h6><p><strong>每一个线程都拥有一个独立的程序计数器、进程栈、一组进程寄存器</strong>。<em>内核调度的对象是线程，而不是进程</em> (<a href="./Linux%E5%86%85%E6%A0%B8%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0(1)/https://www.jianshu.com/p/8ff15d3a1dfd">从进程和线程了解浏览器的工作原理</a>)；在 Linux 中对线程和进程的区分度不是很大。线程之间共享虚拟内存，但是每个线程都拥有自己独立的虚拟处理器。每个进程都有自己的用户栈和内核栈，陷入内核时，将用户栈寄存器压入内核栈；出去时，重新返回用户栈寄存器，并清空内核栈–<strong>内核栈总是空的</strong></p>
 
   </div>
 </article>
