@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="什么是中断？我们将会从下面的主题开始：  什么是 中断（interrupts） ？  什么是 中断处理（interrupt handlers） ？   中断就是当软件或者硬件需要使用 CPU 时引发的 事件（event）。比如，当我们在键盘上按下一个键的时候，我们下一步期望做什么？操作系统和电脑应该怎么做？做一个简单的假设，每一个物理硬件都有一根连接 CPU 的中断线，设备可以通过它对 CPU 发">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux中断和异常">
+<meta property="og:url" content="https://7qing.github.io/2024/11/15/Linux/interrupt/%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8/index.html">
+<meta property="og:site_name" content="7qing-blog">
+<meta property="og:description" content="什么是中断？我们将会从下面的主题开始：  什么是 中断（interrupts） ？  什么是 中断处理（interrupt handlers） ？   中断就是当软件或者硬件需要使用 CPU 时引发的 事件（event）。比如，当我们在键盘上按下一个键的时候，我们下一步期望做什么？操作系统和电脑应该怎么做？做一个简单的假设，每一个物理硬件都有一根连接 CPU 的中断线，设备可以通过它对 CPU 发">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://7qing.github.io/computer_system/%E5%9B%BE%E7%89%87/%E5%8F%AF%E7%BC%96%E7%A8%8B%E4%B8%AD%E6%96%AD%E6%8E%A7%E5%88%B6%E5%99%A8.jpg">
+<meta property="og:image" content="https://7qing.github.io/2024/11/15/Linux/interrupt/%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8/#Gate_Descriptor">
+<meta property="article:published_time" content="2024-11-14T16:00:00.000Z">
+<meta property="article:modified_time" content="2025-06-16T13:38:16.000Z">
+<meta property="article:author" content="7qing">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://7qing.github.io/computer_system/%E5%9B%BE%E7%89%87/%E5%8F%AF%E7%BC%96%E7%A8%8B%E4%B8%AD%E6%96%AD%E6%8E%A7%E5%88%B6%E5%99%A8.jpg">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/logo.png">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/logo.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/logo.png">
+        
+      
+    
+    <!-- title -->
+    <title>Linux中断和异常</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="顶部" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/7qing">项目</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="上一篇" href="/2024/11/25/Linux/interrupt/%E4%B8%AD%E6%96%AD%E6%97%B6%E5%8F%91%E7%94%9F%E7%9A%84%E6%83%85%E5%86%B5/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2024/10/20/Linux/process/%E8%BF%9B%E7%A8%8B/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://7qing.github.io/2024/11/15/Linux/interrupt/%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://7qing.github.io/2024/11/15/Linux/interrupt/%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8/&text=Linux中断和异常"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://7qing.github.io/2024/11/15/Linux/interrupt/%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8/&title=Linux中断和异常"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://7qing.github.io/2024/11/15/Linux/interrupt/%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8/&is_video=false&description=Linux中断和异常"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Linux中断和异常&body=Check out this article: https://7qing.github.io/2024/11/15/Linux/interrupt/%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://7qing.github.io/2024/11/15/Linux/interrupt/%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8/&title=Linux中断和异常"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://7qing.github.io/2024/11/15/Linux/interrupt/%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8/&title=Linux中断和异常"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://7qing.github.io/2024/11/15/Linux/interrupt/%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8/&title=Linux中断和异常"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://7qing.github.io/2024/11/15/Linux/interrupt/%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8/&title=Linux中断和异常"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://7qing.github.io/2024/11/15/Linux/interrupt/%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8/&name=Linux中断和异常&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://7qing.github.io/2024/11/15/Linux/interrupt/%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8/&t=Linux中断和异常"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E4%B8%AD%E6%96%AD%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">什么是中断？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%AF%E7%BC%96%E7%A8%8B%E4%B8%AD%E6%96%AD%E6%8E%A7%E5%88%B6%E5%99%A8-PIC%E3%80%81APIC"><span class="toc-number">2.</span> <span class="toc-text">可编程中断控制器(PIC、APIC)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%AD%E6%96%AD%E6%8E%A7%E5%88%B6%E5%99%A8"><span class="toc-number">2.1.</span> <span class="toc-text">中断控制器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#irq-chip%E7%BB%93%E6%9E%84"><span class="toc-number">2.2.</span> <span class="toc-text">irq_chip结构</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%AD%E6%96%AD%E5%90%91%E9%87%8F%E8%A1%A8-IDT"><span class="toc-number">3.</span> <span class="toc-text">中断向量表(IDT)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Gate-Descriptor"><span class="toc-number">4.</span> <span class="toc-text">Gate_Descriptor</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%AD%E6%96%AD%E5%A4%84%E7%90%86"><span class="toc-number">5.</span> <span class="toc-text">中断处理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%AD%E6%96%AD%E6%8F%8F%E8%BF%B0%E7%AC%A6"><span class="toc-number">6.</span> <span class="toc-text">中断描述符</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%AD%E6%96%AD%E6%9C%8D%E5%8A%A1%E4%BE%8B%E7%A8%8B-ISR"><span class="toc-number">7.</span> <span class="toc-text">中断服务例程(ISR)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#irq-stat%E6%95%B0%E7%BB%84"><span class="toc-number">8.</span> <span class="toc-text">irq_stat数组</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B3%E7%B3%BB"><span class="toc-number">9.</span> <span class="toc-text">关系</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B7%B1%E5%85%A5Linux%E5%86%85%E6%A0%B8%E4%B8%AD%E7%9A%84%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86"><span class="toc-number">10.</span> <span class="toc-text">深入Linux内核中的中断和异常处理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96%EF%BC%9A"><span class="toc-number">11.</span> <span class="toc-text">初始化：</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%AD%E6%96%ADapi"><span class="toc-number">11.1.</span> <span class="toc-text">中断api</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%AD%E6%96%AD%E5%90%91%E9%87%8F"><span class="toc-number">11.2.</span> <span class="toc-text">初始化中断向量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96%E5%BC%82%E5%B8%B8%E5%90%91%E9%87%8F"><span class="toc-number">11.3.</span> <span class="toc-text">初始化异常向量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%AD%E6%96%AD"><span class="toc-number">11.4.</span> <span class="toc-text">初始化中断</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">11.5.</span> <span class="toc-text">总结</span></a></li></ol></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        Linux中断和异常
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">7qing</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2024-11-14T16:00:00.000Z" class="dt-published" itemprop="datePublished">2024-11-15</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fa-solid fa-tag"></i>
+        <a class="p-category" href="/tags/Linux/" rel="tag">Linux</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <h2 id="什么是中断？"><a href="#什么是中断？" class="headerlink" title="什么是中断？"></a>什么是中断？</h2><p>我们将会从下面的主题开始：</p>
+<ul>
+<li><p>什么是 <code>中断（interrupts）</code> ？</p>
+</li>
+<li><p>什么是 <code>中断处理（interrupt handlers）</code> ？</p>
+<p>  中断就是当软件或者硬件需要使用 CPU 时引发的 <code>事件（event）</code>。比如，当我们在键盘上按下一个键的时候，我们下一步期望做什么？操作系统和电脑应该怎么做？做一个简单的假设，每一个物理硬件都有一根连接 CPU 的中断线，设备可以通过它对 CPU 发起中断信号。但是中断信号并不是直接发送给 CPU。在老机器上中断信号发送给 <a target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/Programmable_Interrupt_Controller">PIC</a> ，它是一个顺序处理各种设备的各种中断请求的芯片。在新机器上，则是<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Advanced_Programmable_Interrupt_Controller">高级程序中断控制器（Advanced Programmable Interrupt Controller）</a>做这件事情，即我们熟知的 <code>APIC</code>。一个 APIC 包括两个独立的设备：</p>
+<ul>
+<li><code>Local APIC</code></li>
+<li><code>I/O APIC</code><br>  第一个设备 - <code>Local APIC</code> 存在于每个CPU核心中，Local APIC 负责处理特定于 CPU 的中断配置。Local APIC 常被用于管理来自 APIC 时钟（APIC-timer）、热敏元件和其他与 I&#x2F;O 设备连接的设备的中断。</li>
+</ul>
+<p>  第二个设备 - <code>I/O APIC</code> 提供了多核处理器的中断管理。它被用来在所有的 CPU 核心中分发外部中断。更多关于 local 和 I&#x2F;O APIC 的内容将会在这一节的下面讲到。就如你所知道的，中断可以在任何时间发生。当一个中断发生时，操作系统必须立刻处理它。但是 <code>处理一个中断</code> 是什么意思呢？当一个中断发生时，操作系统必须确保下面的步骤顺序：</p>
+<ul>
+<li>内核必须暂停执行当前进程(取代当前的任务)；</li>
+<li>内核必须搜索中断处理程序并且转交控制权(执行中断处理程序)；</li>
+<li>中断处理程序结束之后，被中断的进程能够恢复执行。</li>
+</ul>
+</li>
+</ul>
+<h2 id="可编程中断控制器-PIC、APIC"><a href="#可编程中断控制器-PIC、APIC" class="headerlink" title="可编程中断控制器(PIC、APIC)"></a>可编程中断控制器(PIC、APIC)</h2><h3 id="中断控制器"><a href="#中断控制器" class="headerlink" title="中断控制器"></a>中断控制器</h3><p>中断控制器是作为中断(IRQ)和CPU核之间的一个桥梁而存在的，每个CPU内部都有一个自己的中断控制器，中断线并不是直接与CPU核相连，而是与CPU内部或外部的中断控制器相连。而为什么叫做可编程中断控制器，是因为其本身有一定的寄存器，CPU可以通过操作设置中断控制器屏蔽某个中断引脚的信号，实现硬件上的中断屏蔽。中断控制器也可以级联提供更多的中断线，具体如下：</p>
+<p><img src="/computer_system/%E5%9B%BE%E7%89%87/%E5%8F%AF%E7%BC%96%E7%A8%8B%E4%B8%AD%E6%96%AD%E6%8E%A7%E5%88%B6%E5%99%A8.jpg"><br>如上图，CPU的INTR与中断控制器的INT相连，INTA与ACK相连，当一个外部中断发生时(比如键盘中断IRQ1)，中断控制器与CPU交互操作如下： </p>
+<ol>
+<li>IRQ1发生中断，主中断控制器接收到中断信号，检查中断屏蔽寄存器IRQ1是否被屏蔽，如果屏蔽则忽略此中断信号。</li>
+<li>将中断控制器中的中断请求寄存器对应的IRQ1位置位，表示收到IRQ1中断。</li>
+<li>中断控制器拉高INT引脚电平，告知CPU有中断发生。</li>
+<li>CPU每执行完一条指令时，都会检查INTR引脚是否被拉高，这里已被拉高。</li>
+<li>CPU检查EFLAGS寄存器的中断运行标志位IF是否为1，若为1，表明允许中断，通过INTA向中断控制器发出应答。</li>
+<li>中断控制器接收到应答信号，将IRQ1的中断向量号发到数据总线上，此时CPU会通过数据总线读取IRQ1的中断向量号。</li>
+<li>最后，如果中断控制器需要EOI(End of Interrupt)信号，CPU则会发送，否则中断控制器自动将INT拉低，并清除IRQ1对应的中断请求寄存器位。</li>
+</ol>
+<h3 id="irq-chip结构"><a href="#irq-chip结构" class="headerlink" title="irq_chip结构"></a>irq_chip结构</h3><p>在linux内核中，用struct irq_chip结构体描述一个可编程中断控制器，它的整个结构和调度器中的调度类类似，里面定义了中断控制器的一些操作，如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">irq_chip</span> &#123;</span></span><br><span class="line">    <span class="comment">/* 中断控制器的名字 */</span></span><br><span class="line">    <span class="type">const</span> <span class="type">char</span>    *name;</span><br><span class="line">    <span class="comment">/* 控制器初始化函数 */</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="title function_">int</span>    <span class="params">(*irq_startup)</span><span class="params">(<span class="keyword">struct</span> irq_data *data)</span>;</span><br><span class="line">    <span class="comment">/* 控制器关闭函数 */</span></span><br><span class="line">    <span class="type">void</span>        (*irq_shutdown)(<span class="keyword">struct</span> irq_data *data);</span><br><span class="line">    <span class="comment">/* 使能irq操作，通常是直接调用irq_unmask()，通过data参数指明irq */</span></span><br><span class="line">    <span class="type">void</span>        (*irq_enable)(<span class="keyword">struct</span> irq_data *data);</span><br><span class="line">    <span class="comment">/* 禁止irq操作，通常是直接调用irq_mask，严格意义上，他俩其实代表不同的意义，disable表示中断控制器根本就不响应该irq，而mask时，中断控制器可能响应该irq，只是不通知CPU */</span></span><br><span class="line">    <span class="type">void</span>        (*irq_disable)(<span class="keyword">struct</span> irq_data *data);</span><br><span class="line">    <span class="comment">/* 用于CPU对该irq的回应，通常表示cpu希望要清除该irq的pending状态，准备接受下一个irq请求 */</span></span><br><span class="line">    <span class="type">void</span>        (*irq_ack)(<span class="keyword">struct</span> irq_data *data);</span><br><span class="line">    <span class="comment">/* 屏蔽irq操作，通过data参数表明指定irq */</span></span><br><span class="line">    <span class="type">void</span>        (*irq_mask)(<span class="keyword">struct</span> irq_data *data);</span><br><span class="line">    <span class="comment">/* 相当于irq_mask() + irq_ack() */</span></span><br><span class="line">    <span class="type">void</span>        (*irq_mask_ack)(<span class="keyword">struct</span> irq_data *data);</span><br><span class="line">    <span class="comment">/* 取消屏蔽指定irq操作 */</span></span><br><span class="line">    <span class="type">void</span>        (*irq_unmask)(<span class="keyword">struct</span> irq_data *data);</span><br><span class="line">    <span class="comment">/* 某些中断控制器需要在cpu处理完该irq后发出eoi信号 */</span></span><br><span class="line">    <span class="type">void</span>        (*irq_eoi)(<span class="keyword">struct</span> irq_data *data);</span><br><span class="line">    <span class="comment">/*  用于设置该irq和cpu之间的亲和力，就是通知中断控制器，该irq发生时，那些cpu有权响应该irq */</span></span><br><span class="line">    <span class="type">int</span>        (*irq_set_affinity)(<span class="keyword">struct</span> irq_data *data, <span class="type">const</span> <span class="keyword">struct</span> cpumask *dest, <span class="type">bool</span> force);</span><br><span class="line">    <span class="type">int</span>        (*irq_retrigger)(<span class="keyword">struct</span> irq_data *data);</span><br><span class="line">    <span class="comment">/* 设置irq的电气触发条件，例如 IRQ_TYPE_LEVEL_HIGH(电平触发) 或 IRQ_TYPE_EDGE_RISING(边缘触发) */</span></span><br><span class="line">    <span class="type">int</span>        (*irq_set_type)(<span class="keyword">struct</span> irq_data *data, <span class="type">unsigned</span> <span class="type">int</span> flow_type);</span><br><span class="line">    <span class="comment">/* 通知电源管理子系统，该irq是否可以用作系统的唤醒源 */</span></span><br><span class="line">    <span class="type">int</span>        (*irq_set_wake)(<span class="keyword">struct</span> irq_data *data, <span class="type">unsigned</span> <span class="type">int</span> on);</span><br><span class="line"></span><br><span class="line">    <span class="type">void</span>        (*irq_bus_lock)(<span class="keyword">struct</span> irq_data *data);</span><br><span class="line">    <span class="type">void</span>        (*irq_bus_sync_unlock)(<span class="keyword">struct</span> irq_data *data);</span><br><span class="line"></span><br><span class="line">    <span class="type">void</span>        (*irq_cpu_online)(<span class="keyword">struct</span> irq_data *data);</span><br><span class="line">    <span class="type">void</span>        (*irq_cpu_offline)(<span class="keyword">struct</span> irq_data *data);</span><br><span class="line"></span><br><span class="line">    <span class="type">void</span>        (*irq_suspend)(<span class="keyword">struct</span> irq_data *data);</span><br><span class="line">    <span class="type">void</span>        (*irq_resume)(<span class="keyword">struct</span> irq_data *data);</span><br><span class="line">    <span class="type">void</span>        (*irq_pm_shutdown)(<span class="keyword">struct</span> irq_data *data);</span><br><span class="line"></span><br><span class="line">    <span class="type">void</span>        (*irq_calc_mask)(<span class="keyword">struct</span> irq_data *data);</span><br><span class="line"></span><br><span class="line">    <span class="type">void</span>        (*irq_print_chip)(<span class="keyword">struct</span> irq_data *data, <span class="keyword">struct</span> seq_file *p);</span><br><span class="line">    <span class="type">int</span>        (*irq_request_resources)(<span class="keyword">struct</span> irq_data *data);</span><br><span class="line">    <span class="type">void</span>        (*irq_release_resources)(<span class="keyword">struct</span> irq_data *data);</span><br><span class="line"></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span>    flags;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="中断向量表-IDT"><a href="#中断向量表-IDT" class="headerlink" title="中断向量表(IDT)"></a>中断向量表(IDT)</h2><p>每个中断处理程序的&#x3D;&#x3D;地址&#x3D;&#x3D;都保存在一个特殊的位置，这个位置被称为 <code>中断描述符表（Interrupt Descriptor Table）</code> 或者 <code>IDT</code>。处理器使用一个唯一的数字来识别中断和异常的类型，这个数字被称为 <code>中断标识码（vector number）</code>。</p>
+<p>中断可以分为 ：</p>
+<ul>
+<li><code>可屏蔽的（maskable）</code> </li>
+<li><code>不可屏蔽的（non-maskable）</code></li>
+</ul>
+<p>异常可以被分为：</p>
+<ul>
+<li><code>故障（Faults）</code></li>
+<li><code>陷入（Traps）</code></li>
+<li><code>终止（Aborts）</code></li>
+</ul>
+<p><code>故障</code> 是在执行一个“不完善的”指令（可以在之后被修正）之前被报告的异常。如果发生了，它允许被中断的程序继续执行。</p>
+<p>接下来的 <code>陷入</code> 是一个在执行了 <code>陷入</code> 指令后立刻被报告的异常。陷入同样允许被中断的程序继续执行，就像 <code>故障</code> 一样。</p>
+<p>最后的 <code>终止</code> 是一个从不报告引起异常的精确指令的异常，并且不允许被中断的程序继续执行。</p>
+<p>可屏蔽的中断可以被阻塞，使用 <code>x86_64</code> 的指令 - <code>sti</code> 和 <code>cli</code>。我们可以在 Linux 内核代码中找到他们：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">void</span> <span class="title function_">native_irq_disable</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">        <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;cli&quot;</span>: : :<span class="string">&quot;memory&quot;</span>)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>和：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">void</span> <span class="title function_">native_irq_enable</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">        <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;sti&quot;</span>: : :<span class="string">&quot;memory&quot;</span>)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这两个指令修改了在中断寄存器中的 <code>IF</code> 标识位。 <code>sti</code> 指令设置 <code>IF</code> 标识，<code>cli</code> 指令清除这个标识。不可屏蔽的中断总是被报告。通常，任何硬件上的失败都映射为不可屏蔽中断。</p>
+<p>如果多个异常或者中断同时发生，处理器以事先设定好的中断优先级处理他们。我们可以定义下面表中的从最低到最高的优先级：</p>
+<table>
+<thead>
+<tr>
+<th>优先级 (Priority)</th>
+<th>描述 (Description)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>硬件复位和机器检查 (Hardware Reset and Machine Checks)</td>
+</tr>
+<tr>
+<td></td>
+<td>- RESET</td>
+</tr>
+<tr>
+<td></td>
+<td>- Machine Check</td>
+</tr>
+<tr>
+<td></td>
+<td>任务切换时的陷阱 (Trap on Task Switch)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>- TSS 中的 T 标志被设置 (T flag in TSS is set)</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td>外部硬件干预 (External Hardware Interventions)</td>
+</tr>
+<tr>
+<td></td>
+<td>- FLUSH</td>
+</tr>
+<tr>
+<td>3</td>
+<td>- STOPCLK</td>
+</tr>
+<tr>
+<td></td>
+<td>- SMI</td>
+</tr>
+<tr>
+<td></td>
+<td>- INIT</td>
+</tr>
+<tr>
+<td></td>
+<td>上一条指令的陷阱 (Traps on the Previous Instruction)</td>
+</tr>
+<tr>
+<td>4</td>
+<td>- Breakpoints</td>
+</tr>
+<tr>
+<td></td>
+<td>- Debug Trap Exceptions</td>
+</tr>
+<tr>
+<td>5</td>
+<td>不可屏蔽中断 (Nonmaskable Interrupts)</td>
+</tr>
+<tr>
+<td>6</td>
+<td>可屏蔽的硬件中断 (Maskable Hardware Interrupts)</td>
+</tr>
+<tr>
+<td>7</td>
+<td>代码断点错误 (Code Breakpoint Fault)</td>
+</tr>
+<tr>
+<td>8</td>
+<td>从下一条指令获取时的错误 (Faults from Fetching Next Instruction)</td>
+</tr>
+<tr>
+<td></td>
+<td>- 代码段限制违规 (Code-Segment Limit Violation)</td>
+</tr>
+<tr>
+<td></td>
+<td>- 代码页错误 (Code Page Fault)</td>
+</tr>
+<tr>
+<td></td>
+<td>从下一条指令解码时的错误 (Faults from Decoding the Next Instruction)</td>
+</tr>
+<tr>
+<td></td>
+<td>- 指令长度超过 15 字节 (Instruction length &gt; 15 bytes)</td>
+</tr>
+<tr>
+<td>9</td>
+<td>- 无效操作码 (Invalid Opcode)</td>
+</tr>
+<tr>
+<td></td>
+<td>- 协处理器不可用 (Coprocessor Not Available)</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>10</td>
+<td>执行指令时的错误 (Faults on Executing an Instruction)</td>
+</tr>
+<tr>
+<td></td>
+<td>- 溢出 (Overflow)</td>
+</tr>
+<tr>
+<td></td>
+<td>- 边界错误 (Bound error)</td>
+</tr>
+<tr>
+<td></td>
+<td>- 无效 TSS (Invalid TSS)</td>
+</tr>
+<tr>
+<td></td>
+<td>- 段不存在 (Segment Not Present)</td>
+</tr>
+<tr>
+<td></td>
+<td>- 栈错误 (Stack fault)</td>
+</tr>
+<tr>
+<td></td>
+<td>- 通用保护错误 (General Protection)</td>
+</tr>
+<tr>
+<td></td>
+<td>- 数据页错误 (Data Page Fault)</td>
+</tr>
+<tr>
+<td></td>
+<td>- 对齐检查 (Alignment Check)</td>
+</tr>
+<tr>
+<td></td>
+<td>- x87 FPU 浮点异常 (x87 FPU Floating-point exception)</td>
+</tr>
+<tr>
+<td></td>
+<td>- SIMD 浮点异常 (SIMD floating-point exception)</td>
+</tr>
+<tr>
+<td></td>
+<td>- 虚拟化异常 (Virtualization exception)</td>
+</tr>
+</tbody></table>
+<p>现在我们了解了一些关于各种类型的中断和异常的内容，是时候转到更实用的部分了。我们从 <code>中断描述符表（IDT）</code> 开始。就如之前所提到的，<code>IDT</code> 保存了中断和异常处理程序的入口指针。<code>IDT</code> 是一个类似于 <code>全局描述符表（Global Descriptor Table）</code>的结构.但是他们确实有一些不同，<code>IDT</code> 的表项被称为 <code>门（gates）</code>，而不是 <code>描述符（descriptors）</code>。它可以包含下面的一种：</p>
+<ul>
+<li>中断门（Interrupt gates）</li>
+<li>任务门（Task gates）</li>
+<li>陷阱门（Trap gates）</li>
+</ul>
+<p>CPU为了防止恶意程序访问中断，限制了中断门的权限，而在某些时候，用户程序又必须使用中断，所以Linux把中断描述符的中断向量类型改为了5种：<strong>中断门，系统门，系统中断门，陷阱门，任务门</strong>。这个中断向量表的基地址保存在idtr寄存器中。</p>
+<p>这个是idt的一般形式：</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Vector nr.</th>
+<th>Type</th>
+<th>Mnemonic</th>
+<th>Error code?</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a target="_blank" rel="noopener" href="https://wiki.osdev.org/Exceptions#Division_Error">Division Error</a></td>
+<td>0 (0x0)</td>
+<td>Fault</td>
+<td>#DE</td>
+<td>No</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://wiki.osdev.org/Exceptions#Debug">Debug</a></td>
+<td>1 (0x1)</td>
+<td>Fault&#x2F;Trap</td>
+<td>#DB</td>
+<td>No</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://wiki.osdev.org/Non_Maskable_Interrupt" title="Non Maskable Interrupt">Non-maskable Interrupt</a></td>
+<td>2 (0x2)</td>
+<td>Interrupt</td>
+<td>-</td>
+<td>No</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://wiki.osdev.org/Exceptions#Breakpoint">Breakpoint</a></td>
+<td>3 (0x3)</td>
+<td>Trap</td>
+<td>#BP</td>
+<td>No</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://wiki.osdev.org/Exceptions#Overflow">Overflow</a></td>
+<td>4 (0x4)</td>
+<td>Trap</td>
+<td>#OF</td>
+<td>No</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://wiki.osdev.org/Exceptions#Bound_Range_Exceeded">Bound Range Exceeded</a></td>
+<td>5 (0x5)</td>
+<td>Fault</td>
+<td>#BR</td>
+<td>No</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://wiki.osdev.org/Exceptions#Invalid_Opcode">Invalid Opcode</a></td>
+<td>6 (0x6)</td>
+<td>Fault</td>
+<td>#UD</td>
+<td>No</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://wiki.osdev.org/Exceptions#Device_Not_Available">Device Not Available</a></td>
+<td>7 (0x7)</td>
+<td>Fault</td>
+<td>#NM</td>
+<td>No</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://wiki.osdev.org/Exceptions#Double_Fault">Double Fault</a></td>
+<td>8 (0x8)</td>
+<td>Abort</td>
+<td>#DF</td>
+<td>Yes (Zero)</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://wiki.osdev.org/Exceptions#Coprocessor_Segment_Overrun">Coprocessor Segment Overrun</a></td>
+<td>9 (0x9)</td>
+<td>Fault</td>
+<td>-</td>
+<td>No</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://wiki.osdev.org/Exceptions#Invalid_TSS">Invalid TSS</a></td>
+<td>10 (0xA)</td>
+<td>Fault</td>
+<td>#TS</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://wiki.osdev.org/Exceptions#Segment_Not_Present">Segment Not Present</a></td>
+<td>11 (0xB)</td>
+<td>Fault</td>
+<td>#NP</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://wiki.osdev.org/Exceptions#Stack-Segment_Fault">Stack-Segment Fault</a></td>
+<td>12 (0xC)</td>
+<td>Fault</td>
+<td>#SS</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://wiki.osdev.org/Exceptions#General_Protection_Fault">General Protection Fault</a></td>
+<td>13 (0xD)</td>
+<td>Fault</td>
+<td>#GP</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://wiki.osdev.org/Exceptions#Page_Fault">Page Fault</a></td>
+<td>14 (0xE)</td>
+<td>Fault</td>
+<td>#PF</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Reserved</td>
+<td>15 (0xF)</td>
+<td>-</td>
+<td>-</td>
+<td>No</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://wiki.osdev.org/Exceptions#x87_Floating-Point_Exception">x87 Floating-Point Exception</a></td>
+<td>16 (0x10)</td>
+<td>Fault</td>
+<td>#MF</td>
+<td>No</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://wiki.osdev.org/Exceptions#Alignment_Check">Alignment Check</a></td>
+<td>17 (0x11)</td>
+<td>Fault</td>
+<td>#AC</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://wiki.osdev.org/Exceptions#Machine_Check">Machine Check</a></td>
+<td>18 (0x12)</td>
+<td>Abort</td>
+<td>#MC</td>
+<td>No</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://wiki.osdev.org/Exceptions#SIMD_Floating-Point_Exception">SIMD Floating-Point Exception</a></td>
+<td>19 (0x13)</td>
+<td>Fault</td>
+<td>#XM&#x2F;#XF</td>
+<td>No</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://wiki.osdev.org/Exceptions#Virtualization_Exception">Virtualization Exception</a></td>
+<td>20 (0x14)</td>
+<td>Fault</td>
+<td>#VE</td>
+<td>No</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://wiki.osdev.org/Exceptions#Control_Protection_Exception">Control Protection Exception</a></td>
+<td>21 (0x15)</td>
+<td>Fault</td>
+<td>#CP</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Reserved</td>
+<td>22-27 (0x16-0x1B)</td>
+<td>-</td>
+<td>-</td>
+<td>No</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://wiki.osdev.org/Exceptions#Hypervisor_Injection_Exception">Hypervisor Injection Exception</a></td>
+<td>28 (0x1C)</td>
+<td>Fault</td>
+<td>#HV</td>
+<td>No</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://wiki.osdev.org/Exceptions#VMM_Communication_Exception">VMM Communication Exception</a></td>
+<td>29 (0x1D)</td>
+<td>Fault</td>
+<td>#VC</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://wiki.osdev.org/Exceptions#Security_Exception">Security Exception</a></td>
+<td>30 (0x1E)</td>
+<td>Fault</td>
+<td>#SX</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Reserved</td>
+<td>31 (0x1F)</td>
+<td>-</td>
+<td>-</td>
+<td>No</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://wiki.osdev.org/Exceptions#Triple_Fault">Triple Fault</a></td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>No</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://wiki.osdev.org/Exceptions#FPU_Error_Interrupt">FPU Error Interrupt</a></td>
+<td>IRQ 13</td>
+<td>Interrupt</td>
+<td>#FERR</td>
+<td>No</td>
+</tr>
+<tr>
+<td>我们可以照着这个格式进行初始化：</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<p>在 <code>x86</code> 架构中，只有 <a target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/Long_mode">long mode</a> 中断门和陷阱门可以在 <code>x86_64</code> 中引用。就像 <code>全局描述符表</code>，<code>中断描述符表</code> 在 <code>x86</code> 上是一个 8 字节数组门，而在 <code>x86_64</code> 上是一个 16 字节数组门。与 <code>全局描述符表</code> 不一样的是，<code>中断描述符表</code> 的第一个元素可以是一个门。它并不是强制要求的。</p>
+<p>在 <a target="_blank" rel="noopener" href="https://github.com/torvalds/linux/blob/master/arch/x86/boot/pm.c">arch&#x2F;x86&#x2F;boot&#x2F;pm.c</a>中。<code>中断描述符表</code> 可以在线性地址空间和基址的任何地方被加载，只要在 <code>x86</code> 上以 8 字节对齐，在 <code>x86_64</code> 上以 16 字节对齐。<code>IDT</code> 的基址存储在一个特殊的寄存器 - IDTR。在 <code>x86</code> 上有两个指令 - 协调工作来修改 <code>IDTR</code> 寄存器：</p>
+<ul>
+<li><code>LIDT</code>  ：用来加载 <code>IDT</code> 的基址，即在 <code>IDTR</code> 的指定操作数。</li>
+<li><code>SIDT</code>  ：用来在指定操作数中读取和存储 <code>IDTR</code> 的内容。</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">+-----------------------------------+----------------------+</span><br><span class="line">|                                   |                      |</span><br><span class="line">|     Base address of the IDT       |   Limit of the IDT   |</span><br><span class="line">|                                   |                      |</span><br><span class="line">+-----------------------------------+----------------------+</span><br><span class="line">47                                16 15                    0</span><br></pre></td></tr></table></figure>
+
+<p>让我们看看 <code>setup_idt</code> 的实现，我们准备了一个 <code>null_idt</code>，并且使用 <code>lidt</code> 指令把它加载到 <code>IDTR</code> 寄存器。注意，<code>null_idt</code> 是 <code>gdt_ptr</code> 类型，后者定义如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">gdt_ptr</span> &#123;</span></span><br><span class="line">        u16 len;</span><br><span class="line">        u32 ptr;</span><br><span class="line">&#125; __attribute__((packed));</span><br></pre></td></tr></table></figure>
+
+<h2 id="Gate-Descriptor"><a href="#Gate-Descriptor" class="headerlink" title="Gate_Descriptor"></a>Gate_Descriptor</h2><p>现在，让我们看看 <code>IDT</code> 入口结构体，它是一个在 <code>x86</code> 中被称为门的 16 字节数组。它拥有下面的结构,Gate Descriptor (64-bit):</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">127                                                                             96</span><br><span class="line">+-------------------------------------------------------------------------------+</span><br><span class="line">|                                                                               |</span><br><span class="line">|                                Reserved                                       |</span><br><span class="line">|                                                                               |</span><br><span class="line">+--------------------------------------------------------------------------------</span><br><span class="line">95                                                                              64</span><br><span class="line">+-------------------------------------------------------------------------------+</span><br><span class="line">|                                                                               |</span><br><span class="line">|                               Offset 63..32                                   |</span><br><span class="line">|                                                                               |</span><br><span class="line">+-------------------------------------------------------------------------------+</span><br><span class="line">63                               48 47      46  44   42    39             34    32</span><br><span class="line">+-------------------------------------------------------------------------------+</span><br><span class="line">|                                  |       |  D  |   |     |      |   |   |     |</span><br><span class="line">|       Offset 31..16              |   P   |  P  | 0 |Type |0 0 0 | 0 | 0 | IST |</span><br><span class="line">|                                  |       |  L  |   |     |      |   |   |     |</span><br><span class="line"> -------------------------------------------------------------------------------+</span><br><span class="line">31                                   16 15                                      0</span><br><span class="line">+-------------------------------------------------------------------------------+</span><br><span class="line">|                                      |                                        |</span><br><span class="line">|          Segment Selector            |                 Offset 15..0           |</span><br><span class="line">|                                      |                                        |</span><br><span class="line">+-------------------------------------------------------------------------------+</span><br></pre></td></tr></table></figure>
+
+<p>为了把索引格式化成 IDT 的格式，处理器把异常和中断向量分为 16 个级别。处理器处理异常和中断的发生就像它看到 <code>call</code> 指令时处理一个程序调用一样。处理器使用中断或异常的唯一的数字或 <code>中断标识码</code> 作为索引来寻找对应的 <code>中断描述符表</code> 的条目。现在让我们更近距离地看看 <code>IDT</code> 条目。</p>
+<p>就像我们所看到的一样，在表中的 <code>IDT</code> 条目由下面的域组成：</p>
+<ul>
+<li><code>0-15</code> bits - 段选择器偏移，处理器用它作为中断处理程序的入口指针基址；</li>
+<li><strong>Offset:</strong> A 64-bit value, split in three parts. It represents the address of the entry point of the <strong><a target="_blank" rel="noopener" href="https://wiki.osdev.org/Interrupt_Service_Routines" title="Interrupt Service Routines">Interrupt Service Routine</a></strong>.</li>
+<li><code>16-31</code> bits - 段选择器基址，包含中断处理程序入口指针；</li>
+<li><strong>Selector:</strong> A <strong><a target="_blank" rel="noopener" href="https://wiki.osdev.org/Segment_Selector" title="Segment Selector">Segment Selector</a></strong> with multiple fields which must point to a valid code segment in your <strong><a target="_blank" rel="noopener" href="https://wiki.osdev.org/GDT" title="GDT">GDT</a></strong>.</li>
+<li><code>IST</code> - 在 <code>x86_64</code> 上的一个新的机制，下面我们会介绍它；</li>
+<li><strong>IST:</strong> A 3-bit value which is an offset into the <strong>Interrupt Stack Table</strong>, which is stored in the <strong><a target="_blank" rel="noopener" href="https://wiki.osdev.org/Task_State_Segment" title="Task State Segment">Task State Segment</a></strong>. If the bits are all set to zero, the <strong>Interrupt Stack Table</strong> is not used.</li>
+<li><code>DPL</code> - 描述符特权级；</li>
+<li><strong>DPL:</strong> A 2-bit value which defines the <strong><a target="_blank" rel="noopener" href="https://wiki.osdev.org/Security#Rings" title="Security">CPU Privilege Levels</a></strong> which are allowed to access this interrupt via the <strong>INT</strong> instruction. Hardware interrupts ignore this mechanism.</li>
+<li><code>P</code> - 段存在标志；</li>
+<li><strong>P:</strong> Present bit. Must be set (<strong>1</strong>) for the descriptor to be valid.</li>
+<li><code>48-63</code> bits - 中断处理程序基址的第二部分；</li>
+<li><code>64-95</code> bits - 中断处理程序基址的第三部分；</li>
+<li><code>96-127</code> bits - CPU 保留位.</li>
+<li><code>Type</code> 域描述了 <code>IDT</code> 条目的类型。有三种不同的中断处理程序：<ul>
+<li>中断门（Interrupt gate）<br>  <strong>0b1110</strong> 或 <strong>0xE</strong>：64 位中断门</li>
+<li>陷入门（Trap gate）<br>  <strong>0b1111</strong> 或 <strong>0xF</strong>：64 位陷阱门</li>
+<li>任务门（Task gate）</li>
+</ul>
+</li>
+</ul>
+<p><code>IST</code> 或者说是 <code>Interrupt Stack Table</code> 是 <code>x86_64</code> 中的新机制，它用来代替传统的栈切换机制。之前的 <code>x86</code> 架构提供的机制可以在响应中断时自动切换栈帧。<code>IST</code> 是 <code>x86</code> 栈切换模式的一个修改版，在它使能之后可以无条件地切换栈，并且可以被任何与确定中断（我们将在下面介绍它）关联的 <code>IDT</code> 条目中的中断使能。从这里可以看出，<code>IST</code> 并不是所有的中断必须的，一些中断可以继续使用传统的栈切换模式。<code>IST</code> 机制在<a target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/Task_state_segment">任务状态段（Task State Segment）</a>或者 <code>TSS</code> 中提供了 7 个 <code>IST</code> 指针。<code>TSS</code> 是一个包含进程信息的特殊结构，用来在执行中断或者处理 Linux 内核异常的时候做栈切换。每一个指针都被 <code>IDT</code> 中的中断门引用。</p>
+<p><code>中断描述符表(idt)</code> 使用 <code>gate_desc</code> 的数组描述：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">extern</span> gate_desc idt_table[];</span><br></pre></td></tr></table></figure>
+
+<p><code>gate_desc</code> 定义如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">gate_struct64</span> <span class="title">gate_desc</span>;</span></span><br></pre></td></tr></table></figure>
+
+<p><code>gate_struct64</code> 定义如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">gate_struct64</span> &#123;</span></span><br><span class="line">        u16 offset_low;</span><br><span class="line">        u16 segment;</span><br><span class="line">        <span class="type">unsigned</span> ist : <span class="number">3</span>, zero0 : <span class="number">5</span>, type : <span class="number">5</span>, dpl : <span class="number">2</span>, p : <span class="number">1</span>;</span><br><span class="line">        u16 offset_middle;</span><br><span class="line">        u32 offset_high;</span><br><span class="line">        u32 zero1;</span><br><span class="line">&#125; __attribute__((packed));</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="中断处理"><a href="#中断处理" class="headerlink" title="中断处理"></a>中断处理</h2><p>当我们发生异常或中断时，系统首先会判断权限字段(安全处理)，权限通过则进入指定的处理函数，而所有的中断门的中断处理函数都是同一个，它首先是一段汇编代码，汇编代码操作如下：</p>
+<ul>
+<li>执行SAVE_ALL宏，保存<strong>中断向量号</strong>和<strong>寄存器上下文</strong>至当前运行进程的内核栈或者硬中断请求栈(当内核栈大小为8K时保存在内核栈，若为4K，则保存在硬中断请求栈)。</li>
+<li>调用**do_IRQ()**函数。</li>
+<li>跳转到ret_from_intr，这是一段汇编代码，主要用于判断是否需要进行调度。</li>
+</ul>
+<p>每个能够产生中断的设备或者模块都会在内核中注册一个<strong>中断服务例程(ISR)</strong>，当产生中断时，中断处理程序会被执行，在中断处理程序中，首先会保存中断向量号和上下文，之后执行中断线对应的中断服务例程。对于CPU来说，中断线是非常宝贵的资源，而由于计算机的发展，外部设备数量和种类越来越多，导致了中断线资源不足的情况，linux为了应对这种情况，实现了两种中断线分配方式，分别是：<strong>共享中断线，中断线动态分配</strong>。</p>
+<ul>
+<li>共享中断线</li>
+</ul>
+<p>　　多个设备共用一条中断线，当此条中断线发生中断时，因为不可能预先知道哪个特定的设备产生了中断，因此，这条中断线上的每个中断服务例程都会被执行，以验证是哪个设备产生的中断(一般的，设备产生中断时，会标记自己的状态寄存器，中断服务例程通过检查每个设备的状态寄存器来查找产生中断的设备)。</p>
+<ul>
+<li>中断线动态分配</li>
+</ul>
+<p>　　一条中断线在可能使用的时刻才与一个设备驱动程序关联起来，这样一来，即使几个硬件设备并不共享中断线，同一个中断向量也可以由这几个设备在不同时刻运行。</p>
+<p>　共享中断线的分配方式是比较常见的，一次典型的基于共享中断线的中断处理流程如下：</p>
+
+
+<p>由于中断处于中断上下文中，所以在中断处理过程中，会有以下几个特性：</p>
+<ul>
+<li>中断处理程序正在运行时，CPU会通知中断控制器屏蔽产生此中断的中断线。此中断线发出的信号被暂时忽略，当中断处理程序结束时恢复此中断线。</li>
+<li>在中断服务例程的设计中，原则上是立即处理紧急的操作，将非紧急的操作延后处理(交给软中断进行处理)。</li>
+<li>中断处理程序是运行在中断上下文，但是其是代表进程运行的，因此它所代表的进行必须处于TASK_RUNNING状态，否则可能出现僵死情况，因此在中断处理程序中不能执行任何阻塞过程。</li>
+</ul>
+<h2 id="中断描述符"><a href="#中断描述符" class="headerlink" title="中断描述符"></a>中断描述符</h2><p>中断描述符用于描述IRQ号的属性与状态，每个IRQ号都有它自己的中断描述符，这些中断描述符用一个数组保存， 这个数组就是<strong>中断描述符表</strong>，整个中断描述符表长度为NR_IRQS（通常为224）项。而当系统中的中断号允许超过224项时， 会用一个radix_tree来组织这些中断描述符， 每次新分配一个IRQ号时， 就会生成对应的中断描述符， 放入radix_tree中。当产生一个中断或者异常时，首先会从中断向量表中获取到一个中断向量号时(此中断向量号有可能表示中断，也可能表示的是一个异常)，如果是一个中断导致的，会执行do_IRQ()函数，而在do_IRQ()函数中，会根据中断向量号，从中断描述符表中获取对应的中断描述符，如下图：</p>
+
+
+<p>整个中断描述符结构如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">irq_desc</span> &#123;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">irq_data</span>        <span class="title">irq_data</span>;</span></span><br><span class="line">    <span class="comment">/* irq的统计信息，在proc中可查到 */</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> __percpu    *kstat_irqs;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">/* 回调函数，当此中断产生中断时，会调用handle_irq，在handle_irq中进行遍历irqaction链表</span></span><br><span class="line"><span class="comment">     * handle_simple_irq  用于简单处理；</span></span><br><span class="line"><span class="comment">     * handle_level_irq  用于电平触发中断的流控处理；</span></span><br><span class="line"><span class="comment">     * handle_edge_irq  用于边沿触发中断的流控处理；</span></span><br><span class="line"><span class="comment">     * handle_fasteoi_irq  用于需要响应eoi的中断控制器；</span></span><br><span class="line"><span class="comment">     * handle_percpu_irq  用于只在单一cpu响应的中断；</span></span><br><span class="line"><span class="comment">     * handle_nested_irq  用于处理使用线程的嵌套中断；</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="type">irq_flow_handler_t</span>    handle_irq;</span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> CONFIG_IRQ_PREFLOW_FASTEOI</span></span><br><span class="line">    <span class="type">irq_preflow_handler_t</span>    preflow_handler;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">    <span class="comment">/* 中断服务例程链表 */</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">irqaction</span>    *<span class="title">action</span>;</span>    <span class="comment">/* IRQ action list */</span></span><br><span class="line">    <span class="comment">/* 状态 */</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span>        status_use_accessors;</span><br><span class="line">    <span class="comment">/* 函数调用中使用，另一个名称为istate */</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span>        core_internal_state__do_not_mess_with_it;</span><br><span class="line">    <span class="comment">/* 嵌套深度，中断线被激活显示0，如果为正数，表示被禁止次数 */</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span>        depth;        <span class="comment">/* nested irq disables */</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span>        wake_depth;    <span class="comment">/* nested wake enables */</span></span><br><span class="line">    <span class="comment">/* 此中断线上发生的中断次数 */</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span>        irq_count;    <span class="comment">/* For detecting broken IRQs */</span></span><br><span class="line">    <span class="comment">/* 上次发生未处理中断时的jiffies值 */</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span>        last_unhandled;    <span class="comment">/* Aging timer for unhandled count */</span></span><br><span class="line">    <span class="comment">/* 中断线上无法处理的中断次数，如果当第100000次中断发生时，有超过99900次是意外中断，系统会禁止这条中断线 */</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span>        irqs_unhandled;</span><br><span class="line">    <span class="type">atomic_t</span>        threads_handled;</span><br><span class="line">    <span class="type">int</span>            threads_handled_last;</span><br><span class="line">    <span class="comment">/* 锁 */</span></span><br><span class="line">    <span class="type">raw_spinlock_t</span>        lock;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">cpumask</span>        *<span class="title">percpu_enabled</span>;</span></span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> CONFIG_SMP</span></span><br><span class="line">    <span class="comment">/* CPU亲和力关系，其实就是每个CPU是占一个bit长度，某CPU上置为1表明该CPU可以进行这个中断的处理 */</span></span><br><span class="line">    <span class="type">const</span> <span class="class"><span class="keyword">struct</span> <span class="title">cpumask</span>    *<span class="title">affinity_hint</span>;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">irq_affinity_notify</span> *<span class="title">affinity_notify</span>;</span></span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> CONFIG_GENERIC_PENDING_IRQ</span></span><br><span class="line">    <span class="comment">/* 用于调整irq在各个cpu之间的平衡 */</span></span><br><span class="line">    <span class="type">cpumask_var_t</span>        pending_mask;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span>        threads_oneshot;</span><br><span class="line">    <span class="type">atomic_t</span>        threads_active;</span><br><span class="line">    <span class="comment">/* 用于synchronize_irq()，等待该irq所有线程完成 */</span></span><br><span class="line">    <span class="type">wait_queue_head_t</span>       wait_for_threads;</span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> CONFIG_PM_SLEEP</span></span><br><span class="line">    <span class="comment">/* irqaction数量 */</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span>        nr_actions;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span>        no_suspend_depth;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span>        force_resume_depth;</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> CONFIG_PROC_FS</span></span><br><span class="line">    <span class="comment">/* 指向与IRQn相关的/proc/irq/n目录的描述符 */</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">proc_dir_entry</span>    *<span class="title">dir</span>;</span></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">    <span class="type">int</span>            parent_irq;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">module</span>        *<span class="title">owner</span>;</span></span><br><span class="line">    <span class="comment">/* 在/proc/interrupts所显示名称 */</span></span><br><span class="line">    <span class="type">const</span> <span class="type">char</span>        *name;</span><br><span class="line">&#125; ____cacheline_internodealigned_in_smp;</span><br></pre></td></tr></table></figure>
+
+<p><code>core_internal_state__do_not_mess_with_it</code>成员是用于记录此中断线状态的，中断线状态有如下几种形式：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">IRQS_AUTODETECT    　　　　<span class="comment">/* 该IRQ线用来进行硬件设备探测 */</span></span><br><span class="line">    IRQS_SPURIOUS_DISABLED    <span class="comment">/* 该IRQ线被禁止，是由于产生了欺骗性中断 */</span></span><br><span class="line">    IRQS_POLL_INPROGRESS      <span class="comment">/* 该IRQ进行轮询检查是否发生中断 */</span></span><br><span class="line">    IRQS_ONESHOT　　　　　　　　<span class="comment">/* 此IRQ没有在主处理函数中进行unmasked处理 */</span></span><br><span class="line">    IRQS_REPLAY　　　　　　　　 <span class="comment">/* IRQ线已被禁止，但前一个出现的中断还没有被应答 */</span></span><br><span class="line">    IRQS_WAITING　　　　　　　　<span class="comment">/* 进行硬件设备探测时，会将所有没有挂载中断服务程序的IRQ线状态设置为IRQS_WAITING，如果该IRQ上有中断产生，就清除这个状态，可以推断哪些引脚产生过中断 */</span></span><br><span class="line">    IRQS_PENDING　　　　　　　　<span class="comment">/* IRQ已经被应答(挂起)，但是内核还没有进行处理 */</span></span><br><span class="line">    IRQS_SUSPENDED　　　　　　 <span class="comment">/* 此IRQ被延迟 */</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="中断服务例程-ISR"><a href="#中断服务例程-ISR" class="headerlink" title="中断服务例程(ISR)"></a>中断服务例程(ISR)</h2><p>　中断服务例程用于描述一个设备的中断处理(区别与中断处理函数)，每个申请了中断的外部设备都会有一个中断服务例程，其作用就是执行对应设备的中断处理。当多个设备共享IRQ线时，内核会将此IRQ线上所有设备的中断服务例程组织成一个链表并保存在中断描述符中，当此IRQ线产生中断时，中断处理函数会依次执行此IRQ线上的中断服务例程。内核使用struct irqaction描述一个中断服务例程：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">irqaction</span> &#123;</span></span><br><span class="line">    <span class="comment">/* 此中断服务例程的中断处理函数 */</span></span><br><span class="line">    <span class="type">irq_handler_t</span>        handler;</span><br><span class="line">    <span class="comment">/* 设备ID，一般用于指向中断处理时需要的数据结构传入handler */</span></span><br><span class="line">    <span class="type">void</span>            *dev_id;</span><br><span class="line">    <span class="comment">/* 此中断服务例程在CPU上所对应的设备ID */</span></span><br><span class="line">    <span class="type">void</span> __percpu        *percpu_dev_id;</span><br><span class="line">    <span class="comment">/* 链表中下一个中断服务例程 */</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">irqaction</span>    *<span class="title">next</span>;</span></span><br><span class="line">    <span class="comment">/* 进行中断处理的内核线程执行函数 */</span></span><br><span class="line">    <span class="type">irq_handler_t</span>        thread_fn;</span><br><span class="line">    <span class="comment">/* 一个内核线程，用于执行中断处理 */</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">task_struct</span>    *<span class="title">thread</span>;</span></span><br><span class="line">    <span class="comment">/* IRQ线，IRQ号 */</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span>        irq;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span>        flags;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span>        thread_flags;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">long</span>        thread_mask;</span><br><span class="line">    <span class="type">const</span> <span class="type">char</span>        *name;</span><br><span class="line">    <span class="comment">/* 指向/proc/irq/n目录的描述符 */</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">proc_dir_entry</span>    *<span class="title">dir</span>;</span></span><br><span class="line">&#125; ____cacheline_internodealigned_in_smp;</span><br></pre></td></tr></table></figure>
+
+<h2 id="irq-stat数组"><a href="#irq-stat数组" class="headerlink" title="irq_stat数组"></a>irq_stat数组</h2><p>此数组包含NR_CPUS个元素，系统中每个CPU对应数组中的一个元素。每个元素的类型为irq_cpustat_t，其包含几个计数器和内核记录CPU正在做什么的标志。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> __softirq_pending;        <span class="comment">/* 表示挂起的软中断，每一位表示一个软中断，为1表示挂起 */</span></span><br><span class="line">    <span class="type">long</span> idle_timestamp;                    <span class="comment">/* CPU变为空闲的时间点 */</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 硬中断统计. */</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> irq_timer_count;            <span class="comment">/* 定时器中断统计 */</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> irq_syscall_count;            <span class="comment">/* 系统调用中断统计 */</span></span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> irq_resched_count;        </span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> irq_hv_flush_count;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> irq_call_count;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> irq_hv_msg_count;</span><br><span class="line">    <span class="type">unsigned</span> <span class="type">int</span> irq_dev_intr_count;</span><br><span class="line"></span><br><span class="line">&#125; ____cacheline_aligned <span class="type">irq_cpustat_t</span>;</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="关系"><a href="#关系" class="headerlink" title="关系"></a>关系</h2><p><strong>中断描述符(struct irq_desc)，中断控制器描述符(struct irq_chip)，中断服务例程(struct irqaction)</strong>。它们的组织形式如下：</p>
+
+
+
+<h2 id="深入Linux内核中的中断和异常处理"><a href="#深入Linux内核中的中断和异常处理" class="headerlink" title="深入Linux内核中的中断和异常处理"></a>深入Linux内核中的中断和异常处理</h2><p>在 <code>x86_64</code> 架构中，每一个活动的线程在 Linux 内核中都有一个很大的栈。这个栈的大小由 <code>THREAD_SIZE</code> 定义，而且与下面的定义相等：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">#define PAGE_SHIFT      12</span><br><span class="line">#define PAGE_SIZE       (_AC(1,UL) &lt;&lt; PAGE_SHIFT)</span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line">#define THREAD_SIZE_ORDER       (2 + KASAN_STACK_ORDER)</span><br><span class="line">#define THREAD_SIZE  (PAGE_SIZE &lt;&lt; THREAD_SIZE_ORDER)</span><br></pre></td></tr></table></figure>
+
+<p><code>PAGE_SIZE</code> 是 <code>4096</code> 字节，<code>THREAD_SIZE_ORDER</code> 的值依赖于 <code>KASAN_STACK_ORDER</code>。就像我们看到的，<code>KASAN_STACK</code> 依赖于 <code>CONFIG_KASAN</code> 内核配置参数，它定义如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">#ifdef CONFIG_KASAN</span><br><span class="line">    #define KASAN_STACK_ORDER 1</span><br><span class="line">#else</span><br><span class="line">    #define KASAN_STACK_ORDER 0</span><br><span class="line">#endif</span><br></pre></td></tr></table></figure>
+
+<p><code>KASan</code> 是一个运行时内存<a target="_blank" rel="noopener" href="http://lwn.net/Articles/618180/">调试器</a>。所以，如果 <code>CONFIG_KASAN</code> 被禁用，<code>THREAD_SIZE</code> 是 <code>16384</code> ；如果内核配置选项打开，<code>THREAD_SIZE</code> 的值是 <code>32768</code>。这块栈空间保存着有用的数据，只要线程是活动状态或者僵尸状态。但是当线程在用户空间的时候，这个内核栈是空的，除非 <code>thread_info</code> 结构在这个栈空间的底部。活动的或者僵尸线程并不是在他们栈中的唯一的线程，与每一个 CPU 关联的特殊栈也存在于这个空间。当内核在这个 CPU 上执行代码的时候，这些栈处于活动状态；当在这个 CPU 上执行用户空间代码时，这些栈不包含任何有用的信息。每一个 CPU 也有一个特殊的 per-cpu 栈。首先是给外部中断使用的 <code>中断栈（interrupt stack）</code>。它的大小定义如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#define IRQ_STACK_ORDER (2 + KASAN_STACK_ORDER)</span><br><span class="line">#define IRQ_STACK_SIZE (PAGE_SIZE &lt;&lt; IRQ_STACK_ORDER)</span><br></pre></td></tr></table></figure>
+
+<p>或者是 <code>16384</code> 字节。Per-cpu 的中断栈在 <code>x86_64</code> 架构中使用 <code>irq_stack_union</code> 联合描述:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">union</span> <span class="title">irq_stack_union</span> &#123;</span></span><br><span class="line">    <span class="type">char</span> irq_stack[IRQ_STACK_SIZE];</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> &#123;</span></span><br><span class="line">        <span class="type">char</span> gs_base[<span class="number">40</span>];</span><br><span class="line">        <span class="type">unsigned</span> <span class="type">long</span> stack_canary;</span><br><span class="line">    &#125;;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+<p>第一个 <code>irq_stack</code> 域是一个 16KB 的数组。然后你可以看到 <code>irq_stack_union</code> 联合包含了一个结构体，这个结构体有两个域：</p>
+<ul>
+<li><code>gs_base</code> - 总是指向 <code>irqstack</code> 联合底部的 <code>gs</code> 寄存器。在 <code>x86_64</code> 中， per-cpu 和 stack canary 共享 <code>gs</code> 寄存器。所有的 per-cpu 标志初始值为零，并且 <code>gs</code> 指向 per-cpu 区域的开始。你已经知道<a target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/Memory_segmentation">段内存模式</a>已经废除很长时间了，但是我们可以使用<a target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/Model-specific_register">特殊模块寄存器（Model specific registers）</a>给这两个段寄存器 - <code>fs</code> 和 <code>gs</code> 设置基址，并且这些寄存器仍然可以被用作地址寄存器。如果你记得 Linux 内核初始程序的第一<a target="_blank" rel="noopener" href="http://xinqiu.gitbooks.io/linux-insides-cn/content/Initialization/linux-initialization-1.html">部分</a>，你会记起我们设置了 <code>gs</code> 寄存器：</li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">movl    $MSR_GS_BASE,%ecx</span><br><span class="line">movl    initial_gs(%rip),%eax</span><br><span class="line">movl    initial_gs+4(%rip),%edx</span><br><span class="line">wrmsr</span><br></pre></td></tr></table></figure>
+
+<p><code>initial_gs</code> 指向 <code>irq_stack_union</code>:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">GLOBAL(initial_gs)</span><br><span class="line">.quad    INIT_PER_CPU_VAR(irq_stack_union)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>stack_canary</code> - <a target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/Stack_buffer_overflow#Stack_canaries">Stack canary</a> 对于中断栈来说是一个用来验证栈是否已经被修改的 <code>栈保护者（stack protector）</code>。<code>gs_base</code> 是一个 40 字节的数组，<code>GCC</code> 要求 stack canary 在被修正过的偏移量上，并且 <code>gs</code> 的值在 <code>x86_64</code> 架构上必须是 <code>40</code>，在 <code>x86</code> 架构上必须是 <code>20</code>。</li>
+</ul>
+<p><code>irq_stack_union</code> 是 <code>percpu</code> 的第一个数据, 我们可以在 <code>System.map</code>中看到它：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">0000000000000000 D __per_cpu_start</span><br><span class="line">0000000000000000 D irq_stack_union</span><br><span class="line">0000000000004000 d exception_stacks</span><br><span class="line">0000000000009000 D gdt_page</span><br></pre></td></tr></table></figure>
+
+<p>我们可以看到它在代码中的定义:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DECLARE_PER_CPU_FIRST(union irq_stack_union, irq_stack_union) __visible;</span><br></pre></td></tr></table></figure>
+
+<p>现在，是时候来看 <code>irq_stack_union</code> 的初始化过程了。除了 <code>irq_stack_union</code> 的定义，我们可以在<a target="_blank" rel="noopener" href="https://github.com/torvalds/linux/blob/master/arch/x86/include/asm/processor.h">arch&#x2F;x86&#x2F;include&#x2F;asm&#x2F;processor.h</a>中查看下面的 per-cpu 变量</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">DECLARE_PER_CPU(char *, irq_stack_ptr);</span><br><span class="line">DECLARE_PER_CPU(unsigned int, irq_count);</span><br></pre></td></tr></table></figure>
+
+<p>第一个就是 <code>irq_stack_ptr</code>。从这个变量的名字中可以知道，它显然是一个指向这个栈顶的指针。第二个 <code>irq_count</code> 用来检查 CPU 是否已经在中断栈。<code>irq_stack_ptr</code> 的初始化在<a target="_blank" rel="noopener" href="https://github.com/torvalds/linux/blob/master/arch/x86/kernel/setup_percpu.c">arch&#x2F;x86&#x2F;kernel&#x2F;setup_percpu.c</a>的 <code>setup_per_cpu_areas</code> 函数中：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> __init <span class="title function_">setup_per_cpu_areas</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> CONFIG_X86_64</span></span><br><span class="line">for_each_possible_cpu(cpu) &#123;</span><br><span class="line">    ...</span><br><span class="line">    ...</span><br><span class="line">    ...</span><br><span class="line">    per_cpu(irq_stack_ptr, cpu) =</span><br><span class="line">            per_cpu(irq_stack_union.irq_stack, cpu) +</span><br><span class="line">            IRQ_STACK_SIZE - <span class="number">64</span>;</span><br><span class="line">    ...</span><br><span class="line">    ...</span><br><span class="line">    ...</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>现在，我们一个一个查看所有 CPU，并且设置 <code>irq_stack_ptr</code>。事实证明它等于中断栈的顶减去 <code>64</code>。为什么是 <code>64</code>？TODO [<a target="_blank" rel="noopener" href="https://github.com/torvalds/linux/blob/master/arch/x86/kernel/cpu/common.c">arch&#x2F;x86&#x2F;kernel&#x2F;cpu&#x2F;common.c</a>] 代码如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">void load_percpu_segment(int cpu)</span><br><span class="line">&#123;</span><br><span class="line">        ...</span><br><span class="line">        ...</span><br><span class="line">        ...</span><br><span class="line">        loadsegment(gs, 0);</span><br><span class="line">        wrmsrl(MSR_GS_BASE, (unsigned long)per_cpu(irq_stack_union.gs_base, cpu));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>就像我们所知道的一样，<code>gs</code> 寄存器指向中断栈的栈底：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">movl    $MSR_GS_BASE,%ecx</span><br><span class="line">    movl    initial_gs(%rip),%eax</span><br><span class="line">    movl    initial_gs+4(%rip),%edx</span><br><span class="line">    wrmsr</span><br><span class="line"></span><br><span class="line">    GLOBAL(initial_gs)</span><br><span class="line">    .quad    INIT_PER_CPU_VAR(irq_stack_union)</span><br></pre></td></tr></table></figure>
+<p>现在我们可以看到 <code>wrmsr</code> 指令，这个指令从 <code>edx:eax</code> 加载数据到 被 <code>ecx</code> 指向的<a target="_blank" rel="noopener" href="https://xinqiu.gitbooks.io/linux-insides-cn/content/Interrupts/(http:/en.wikipedia.org/wiki/Model-specific_register)">MSR寄存器</a>。在这里MSR寄存器是 <code>MSR_GS_BASE</code>，它保存了被 <code>gs</code> 寄存器指向的内存段的基址。<code>edx:eax</code> 指向 <code>initial_gs</code> 的地址，它就是 <code>irq_stack_union</code> 的基址。</p>
+<p>我们还知道，<code>x86_64</code> 有一个叫 <code>中断栈表（Interrupt Stack Table）</code> 或者 <code>IST</code> 的组件，当发生不可屏蔽中断、双重错误等等的时候，这个组件提供了切换到新栈的功能。这可以到达7个 <code>IST</code> per-cpu 入口。其中一些如下; There can be up to seven <code>IST</code> entries per-cpu. Some of them are:</p>
+<ul>
+<li><code>DOUBLEFAULT_STACK</code></li>
+<li><code>NMI_STACK</code></li>
+<li><code>DEBUG_STACK</code></li>
+<li><code>MCE_STACK</code></li>
+</ul>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">#define DOUBLEFAULT_STACK 1</span><br><span class="line">#define NMI_STACK 2</span><br><span class="line">#define DEBUG_STACK 3</span><br><span class="line">#define MCE_STACK 4</span><br></pre></td></tr></table></figure>
+
+<p>所有被 <code>IST</code> 切换到新栈的中断门描述符都由 <code>set_intr_gate_ist</code> 函数初始化。例如:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">set_intr_gate_ist(X86_TRAP_NMI, &amp;nmi, NMI_STACK);</span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line">set_intr_gate_ist(X86_TRAP_DF, &amp;double_fault, DOUBLEFAULT_STACK);</span><br></pre></td></tr></table></figure>
+
+<p>其中 <code>&amp;nmi</code> 和 <code>&amp;double_fault</code> 是中断函数的入口地址：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">asmlinkage void nmi(void);</span><br><span class="line">asmlinkage void double_fault(void);</span><br></pre></td></tr></table></figure>
+
+<p>定义在 <a target="_blank" rel="noopener" href="https://github.com/torvalds/linux/blob/master/arch/x86/kernel/entry_64.S">arch&#x2F;x86&#x2F;kernel&#x2F;entry_64.S</a>中</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">idtentry double_fault do_double_fault has_error_code=1 paranoid=2</span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line">ENTRY(nmi)</span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line">END(nmi)</span><br></pre></td></tr></table></figure>
+<p>当一个中断或者异常发生时，新的 <code>ss</code> 选择器被强制置为 <code>NULL</code>，并且 <code>ss</code> 选择器的 <code>rpl</code> 域被设置为新的 <code>cpl</code>。旧的 <code>ss</code>、<code>rsp</code>、寄存器标志、<code>cs</code>、<code>rip</code> 被压入新栈。在 64 位模型下，中断栈帧大小固定为 8 字节，所以我们可以得到下面的栈:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">+---------------+</span><br><span class="line">|               |</span><br><span class="line">|      SS       | 40</span><br><span class="line">|      RSP      | 32</span><br><span class="line">|     RFLAGS    | 24</span><br><span class="line">|      CS       | 16</span><br><span class="line">|      RIP      | 8</span><br><span class="line">|   Error code  | 0</span><br><span class="line">|               |</span><br><span class="line">+---------------+</span><br></pre></td></tr></table></figure>
+<p>如果在中断门中 <code>IST</code> 域不是 <code>0</code>，我们把 <code>IST</code> 读到 <code>rsp</code> 中。如果它关联了一个中断向量错误码，我们再把这个错误码压入栈。如果中断向量没有错误码，就继续并且把虚拟错误码压入栈。我们必须做以上的步骤以确保栈一致性。接下来我们从门描述符中加载段选择器域到 CS 寄存器中，并且通过验证第 <code>21</code> 位的值来验证目标代码是一个 64 位代码段，例如 <code>L</code> 位在 <code>全局描述符表（Global Descriptor Table）</code>。最后我们从门描述符中加载偏移域到 <code>rip</code> 中，<code>rip</code> 是中断处理函数的入口指针。然后中断函数开始执行，在中断函数执行结束后，它必须通过 <code>iret</code> 指令把控制权交还给被中断进程。<code>iret</code> 指令无条件地弹出栈指针（<code>ss:rsp</code>）来恢复被中断的进程，并且不会依赖于 <code>cpl</code> 改变。</p>
+<p>Linux内核中关于 <code>x86_64</code>架构的代码中与中断相关的最早期代码出现在 <a target="_blank" rel="noopener" href="https://github.com/torvalds/linux/blob/16f73eb02d7e1765ccab3d2018e0bd98eb93d973/arch/x86/boot/pm.c">arch&#x2F;x86&#x2F;boot&#x2F;pm.c</a>文件中，该文件首次配置了 <a target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/Interrupt_descriptor_table">中断描述符表</a>(IDT)。对IDT的配置在<code>go_to_protected_mode</code>函数中完成，该函数首先调用了 <code>setup_idt</code>函数配置了IDT，然后将处理器的工作模式切换为 <a target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/Protected_mode">保护模式</a>:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> <span class="title function_">go_to_protected_mode</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">        ...</span><br><span class="line">        setup_idt();</span><br><span class="line">        ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>setup_idt</code>函数在同一文件中定义，它仅仅是用 <code>NULL</code>填充了中断描述符表:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">static void setup_idt(void)</span><br><span class="line">&#123;</span><br><span class="line">        static const struct gdt_ptr null_idt = &#123;0, 0&#125;;</span><br><span class="line">        asm volatile(&quot;lidtl %0&quot; : : &quot;m&quot; (null_idt));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>gdt_ptr</code>表示了一个48-bit的特殊功能寄存器 <code>GDTR</code>，其包含了全局描述符表 <code>Global Descriptor</code>的基地址:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">gdt_ptr</span> &#123;</span></span><br><span class="line">        u16 len;</span><br><span class="line">        u32 ptr;</span><br><span class="line">&#125; __attribute__((packed));</span><br></pre></td></tr></table></figure>
+
+<p>显然，在此处的 <code>gdt_prt</code>不是代表 <code>GDTR</code>寄存器而是代表 <code>IDTR</code>寄存器，因为我们将其设置到了中断描述符表中。之所以在Linux内核代码中没有<code>idt_ptr</code>结构体，是因为其与<code>gdt_prt</code>具有相同的结构而仅仅是名字不同，因此没必要定义两个重复的数据结构。可以看到，内核在此处并没有填充<code>Interrupt Descriptor Table</code>，这是因为此刻处理任何中断或异常还为时尚早，因此我们仅仅以<code>NULL</code>来填充<code>IDT</code>。</p>
+<p>在设置完 <a target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/Interrupt_descriptor_table">Interrupt descriptor table</a>, <a target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/GDT">Global Descriptor Table</a>和其他一些东西以后，内核开始进入保护模式，这部分代码在 <a target="_blank" rel="noopener" href="https://github.com/torvalds/linux/blob/16f73eb02d7e1765ccab3d2018e0bd98eb93d973/arch/x86/boot/pmjump.S">arch&#x2F;x86&#x2F;boot&#x2F;pmjump.S</a>中实现.</p>
+<p>进入保护模式的代码位于 <code>boot_params.hdr.code32_start</code>，你可以在 <a target="_blank" rel="noopener" href="https://github.com/torvalds/linux/blob/16f73eb02d7e1765ccab3d2018e0bd98eb93d973/arch/x86/boot/pm.c">arch&#x2F;x86&#x2F;boot&#x2F;pm.c</a>的末尾看到内核将入口函数指针和启动参数 <code>boot_params</code>传递给了 <code>protected_mode_jump</code>函数:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">protected_mode_jump(boot_params.hdr.code32_start,</span><br><span class="line">                            (u32)&amp;boot_params + (ds() &lt;&lt; <span class="number">4</span>));</span><br></pre></td></tr></table></figure>
+
+<p><code>protected_mode_jump</code>通过一种<a target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/Intel_8086">8086</a>的调用 <a target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/X86_calling_conventions#List_of_x86_calling_conventions">约定</a>，通过 <code>ax</code>和 <code>dx</code>两个寄存器来获取参数:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">GLOBAL(protected_mode_jump)</span><br><span class="line">        ...</span><br><span class="line">        ...</span><br><span class="line">        ...</span><br><span class="line">        .byte   <span class="number">0x66</span>, <span class="number">0xea</span>              <span class="meta"># ljmpl opcode</span></span><br><span class="line"><span class="number">2</span>:      .<span class="type">long</span>   in_pm32                 <span class="meta"># offset</span></span><br><span class="line">        .word   __BOOT_CS               <span class="meta"># segment</span></span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line">...</span><br><span class="line">ENDPROC(protected_mode_jump)</span><br></pre></td></tr></table></figure>
+
+<p>其中 <code>in_pm32</code>包含了对32-bit入口的跳转语句:<br>&#96;</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GLOBAL(in_pm32)</span><br><span class="line">        ...</span><br><span class="line">        ...</span><br><span class="line">        jmpl    *%eax <span class="comment">// %eax contains address of the `startup_32`</span></span><br><span class="line">        ...</span><br><span class="line">        ...</span><br><span class="line">ENDPROC(in_pm32)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+<h2 id="初始化："><a href="#初始化：" class="headerlink" title="初始化："></a>初始化：</h2><p>而整个初始化的过程与中断处理过程相应，首先先初始化中断向量表，再初始化中断描述符表和中断描述符。中断控制器描述符是系统预定编写好的静态变量，如i8259A中断控制器对应的变量就是i8259A_chip。这时一个中断已经初始化完毕，之后驱动需要使用此中断时系统会将驱动中的中断处理加入到该中断的中断服务例程链表中。如下图</p>
+
+
+<h3 id="中断api"><a href="#中断api" class="headerlink" title="中断api"></a>中断api</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 设置一个中断门</span></span><br><span class="line"><span class="comment">  * n：中断号 </span></span><br><span class="line"><span class="comment">  * addr:中断处理程序入口地址</span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> set_intr_gate(n, addr)                        \</span></span><br><span class="line"><span class="meta">    do &#123;                                \</span></span><br><span class="line"><span class="meta">        BUG_ON((unsigned)n &gt; 0xFF);                \</span></span><br><span class="line"><span class="meta">        _set_gate(n, GATE_INTERRUPT, (void *)addr, 0, 0,    \</span></span><br><span class="line"><span class="meta">              __KERNEL_CS);                    \</span></span><br><span class="line"><span class="meta">        _trace_set_gate(n, GATE_INTERRUPT, (void *)trace_##addr,\</span></span><br><span class="line"><span class="meta">                0, 0, __KERNEL_CS);            \</span></span><br><span class="line"><span class="meta">    &#125; while (0)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* 设置一个系统中断门 */</span></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">void</span> <span class="title function_">set_system_intr_gate</span><span class="params">(<span class="type">unsigned</span> <span class="type">int</span> n, <span class="type">void</span> *addr)</span></span><br><span class="line">&#123;</span><br><span class="line">    BUG_ON((<span class="type">unsigned</span>)n &gt; <span class="number">0xFF</span>);</span><br><span class="line">    _set_gate(n, GATE_INTERRUPT, addr, <span class="number">0x3</span>, <span class="number">0</span>, __KERNEL_CS);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 设置一个系统门 */</span></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">void</span> <span class="title function_">set_system_trap_gate</span><span class="params">(<span class="type">unsigned</span> <span class="type">int</span> n, <span class="type">void</span> *addr)</span></span><br><span class="line">&#123;</span><br><span class="line">    BUG_ON((<span class="type">unsigned</span>)n &gt; <span class="number">0xFF</span>);</span><br><span class="line">    _set_gate(n, GATE_TRAP, addr, <span class="number">0x3</span>, <span class="number">0</span>, __KERNEL_CS);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 设置一个陷阱门 */</span></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">void</span> <span class="title function_">set_trap_gate</span><span class="params">(<span class="type">unsigned</span> <span class="type">int</span> n, <span class="type">void</span> *addr)</span></span><br><span class="line">&#123;</span><br><span class="line">    BUG_ON((<span class="type">unsigned</span>)n &gt; <span class="number">0xFF</span>);</span><br><span class="line">    _set_gate(n, GATE_TRAP, addr, <span class="number">0</span>, <span class="number">0</span>, __KERNEL_CS);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 设置一个任务门 */</span></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">void</span> <span class="title function_">set_task_gate</span><span class="params">(<span class="type">unsigned</span> <span class="type">int</span> n, <span class="type">unsigned</span> <span class="type">int</span> gdt_entry)</span></span><br><span class="line">&#123;</span><br><span class="line">    BUG_ON((<span class="type">unsigned</span>)n &gt; <span class="number">0xFF</span>);</span><br><span class="line">    _set_gate(n, GATE_TASK, (<span class="type">void</span> *)<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, (gdt_entry&lt;&lt;<span class="number">3</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这几个函数用于设置不同门的API函数，他们的参数n都为中断号，而他们都会调用_set_gate()函数，只是参数不同，_set_gate()函数如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 设置一个门描述符，并写入中断向量表</span></span><br><span class="line"><span class="comment"> * gate: 中断号</span></span><br><span class="line"><span class="comment"> * type: 门类型</span></span><br><span class="line"><span class="comment"> * addr: 中断处理程序入口</span></span><br><span class="line"><span class="comment"> * dpl:  权限位</span></span><br><span class="line"><span class="comment"> * ist:  64位系统才使用</span></span><br><span class="line"><span class="comment"> * seg:  段选择符</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">void</span> _set_gate(<span class="type">int</span> gate, <span class="type">unsigned</span> type, <span class="type">void</span> *addr,</span><br><span class="line">                 <span class="type">unsigned</span> dpl, <span class="type">unsigned</span> ist, <span class="type">unsigned</span> seg)</span><br><span class="line">&#123;</span><br><span class="line">    gate_desc s;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 生成一个门描述符 */</span></span><br><span class="line">    pack_gate(&amp;s, type, (<span class="type">unsigned</span> <span class="type">long</span>)addr, dpl, ist, seg);</span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * does not need to be atomic because it is only done once at</span></span><br><span class="line"><span class="comment">     * setup time</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="comment">/* 将新的门描述符写入中断向量表中的gate项，使用memcpy进行写入 */</span></span><br><span class="line">    write_idt_entry(idt_table, gate, &amp;s);</span><br><span class="line">    <span class="comment">/* 用于跟踪? 暂时还不清楚这个 trace_idt_table 的用途 */</span></span><br><span class="line">    write_trace_idt_entry(gate, &amp;s);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="初始化中断向量"><a href="#初始化中断向量" class="headerlink" title="初始化中断向量"></a>初始化中断向量</h3><p>虽然称之为中断向量表，其实对于CPU来说只是一个起始地址，此地址开始每向上8个字节为一个中断向量。我们的CPU上有一个idtr寄存器，它专门用于保存中断向量表地址，当产生一个中断时，CPU会自动从idtr寄存器保存的中断向量表地址处获取相应的中断向量，然后判断权限并跳转至中断处理函数。当计算机刚启动时，首先会启动引导程序(BIOS)，在BIOS中会把中断向量表存放在内存开始位置(0x00000000)。BIOS会有自己的一些默认中断处理函数，而当BIOS处理完后，会将计算机控制器转交给linux，而linux会在使用BIOS的中断向量表的同时重新设置新的中断向量表(新的地址保存在配置中的CONFIG_VECTORS_BASE)，之后会完全使用新的中断向量表。</p>
+<p>一般的，我们也把中断向量表中的中断向量称为<strong>门描述符</strong>，其大小为64位，其主要保存了<strong>段选择符、权限位和中断处理程序入口地址</strong>。CPU主要将门分为三种：<strong>任务门，中断门，陷阱门</strong>。虽然CPU把门描述符分为了三种，但是linux为了处理更多种情况，把门描述符分为了五种，分别为<strong>中断门，系统门，系统中断门，陷阱门，任务门</strong>；但其存储结构与CPU定义的门不变。结构如下：<img src="/2024/11/15/Linux/interrupt/%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8/#Gate_Descriptor"><br>门描述符的初始化主要分为两部分，我们知道，中断向量表中保存的是中断和异常，所以整个中断描述符的初始化需要分为中断初始化和异常初始化。而中断向量表的初始化情况是，第一部分是经过一段汇编代码对整个中断向量表进行初始化，第二部分是在系统进入start_kernel()函数后分别对异常和中断进行初始化。在linux中，中断向量表用idt_table[NR_VECTORS]数组进行描述，中断向量(门描述符)在系统中用struct desc_struct结构表示，具体我们可以往下看。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">__INIT</span><br><span class="line">setup_once:</span><br><span class="line"></span><br><span class="line">    movl $idt_table,%edi                           # idt_table就是中断向量表，地址保存到edi中</span><br><span class="line">    movl $early_idt_handlers,%eax                  # early_idt_handlers地址保存到eax中，early_idt_handlers是二维数组，每行9个字符</span><br><span class="line">    movl $NUM_EXCEPTION_VECTORS,%ecx               # NUM_EXCEPTION_VECTORS地址保存到ecx中，ecx用于循环，NUM_EXCEPTION_VECTORS为32</span><br><span class="line">1:</span><br><span class="line">    movl %eax,(%edi)                               # 将eax的值保存到edi保存的地址中</span><br><span class="line">    movl %eax,4(%edi)                              # 将eax的值保存到edi保存的地址+4中</span><br><span class="line">    /* interrupt gate, dpl=0, present */</span><br><span class="line">    movl $(0x8E000000 + __KERNEL_CS),2(%edi)       # 将(0x8E000000 + __KERNEL_CS)一共4个字节保存到edi保存的地址+2的位置中</span><br><span class="line">    addl $9,%eax                                   # eax += 9，指向early_idt_handlers数组下一列</span><br><span class="line">    addl $8,%edi                                   # edi += 8，就是下一个门描述符地址</span><br><span class="line">    loop 1b                                        # 根据ecx是否为0进行循环  </span><br><span class="line">    # 前32个中断向量初始化结果：</span><br><span class="line">    #  |63                         48|47                   32|</span><br><span class="line">	#   31                         16|15                    0|</span><br><span class="line">    #  |early_idt_handlers[i](高16位)|        0x8E00         |     __KERNEL_CS      |early_idt_handlers[i](低16位)|                           </span><br><span class="line"></span><br><span class="line">    movl $256 - NUM_EXCEPTION_VECTORS,%ecx         # 256 - 32 保存到ecx，进行新一轮的循环</span><br><span class="line">    movl $ignore_int,%edx                          # ignore_int保存到edx</span><br><span class="line">    movl $(__KERNEL_CS &lt;&lt; 16),%eax                 # (__KERNEL_CS &lt;&lt; 16)保存到eax</span><br><span class="line">    movw %dx,%ax       </span><br><span class="line">    movw $0x8E00,%dx 2:</span><br><span class="line">    movl %eax,(%edi)</span><br><span class="line">    movl %edx,4(%edi)</span><br><span class="line">    addl $8,%edi                                   # edi += 8，就是下一个门描述符地址</span><br><span class="line">    loop 2b  </span><br><span class="line">    # 其他中断向量初始化结果：</span><br><span class="line">    #  |63                      48|47                   32|31                  16|15                       0|</span><br><span class="line">    #  |    ignore_int(高16位)    |        0x8E00         |     __KERNEL_CS      |    ignore_int(低16位)    |</span><br></pre></td></tr></table></figure>
+
+<p>如果CPU是X86，之后会通过 lidt  idt_descr 命令将中断向量表(idt_descr)地址放入idtr寄存器；如果不是，则暂时不会将idt_descr放入idtr寄存器(在trap_init()函数再执行这步操作)。idtr寄存器一共是48位，低16位保存的是中断向量表长度，高32位保存的是中断向量表基地址。我们可以看看idt_descr的形式，如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">idt_descr:</span><br><span class="line">    .word IDT_ENTRIES*8-1        # 这里放入的是表长度， 256 * 8 - 1</span><br><span class="line">    .long idt_table                # idt_table地址放在这，idt_table定义在/arch/x86/kernel/trap.h中</span><br><span class="line"></span><br><span class="line">/* 我们再看看 idt_table 是怎么定义的，idt_table代表的就是中断向量表 */</span><br><span class="line">/* 代码地址：arch/x86/kernel/Traps.c */</span><br><span class="line">gate_desc idt_table[NR_VECTORS] __page_aligned_bss;</span><br><span class="line"></span><br><span class="line">/* 继续，看看 gate_desc ，用于描述一个中断向量 */</span><br><span class="line">#ifdef CONFIG_X86_64</span><br><span class="line">typedef struct gate_struct64 gate_desc;</span><br><span class="line">#else</span><br><span class="line">typedef struct desc_struct gate_desc;</span><br><span class="line">#endif</span><br><span class="line"></span><br><span class="line">/* 我们看看32位下的 struct desc_struct，此结构就是一个中断向量(门描述符)  */</span><br><span class="line">struct desc_struct &#123;</span><br><span class="line">    union &#123;</span><br><span class="line">        struct &#123;</span><br><span class="line">            unsigned int a;</span><br><span class="line">            unsigned int b;</span><br><span class="line">        &#125;;</span><br><span class="line">        struct &#123;</span><br><span class="line">            u16 limit0;</span><br><span class="line">            u16 base0;</span><br><span class="line">            unsigned base1: 8, type: 4, s: 1, dpl: 2, p: 1;</span><br><span class="line">            unsigned limit: 4, avl: 1, l: 1, d: 1, g: 1, base2: 8;</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;;</span><br><span class="line">&#125; __attribute__((packed));</span><br></pre></td></tr></table></figure>
+
+<p>可以看出，在汇编代码初始化部分，所有的门描述符的DPL权限位都设置为0(用户态不可访问)，段选择符设置为__KERNEL_CS内核代码段。而对于中断处理函数设置则不同，前32个门描述符的中断处理函数为early_idt_handlers，之后的门描述符的中断处理函数为ignore_int。而在linux中，0<del>19的中断向量是用于异常和陷阱。20</del>31的中断向量是intel保留使用的。</p>
+<h3 id="初始化异常向量"><a href="#初始化异常向量" class="headerlink" title="初始化异常向量"></a>初始化异常向量</h3><p>异常向量作为在中断向量表中的前20个向量(0~19)，在汇编代码中已经将其的处理函数设置为early_idt_handlers，而进入start_kernel()函数后，系统会在trap_init()函数中重新设置它们的处理函数，由于异常和陷阱的特殊性，它们并没有像中断这样复杂的数据结构，单纯的，每个异常和陷阱有它们自己的中断处理函数，系统只是简单地把中断处理函数放入异常和陷阱的门描述符中。在了解trap_init()函数之前，我们需要先了解如下几个函数:<a href="#%E4%B8%AD%E6%96%ADapi">中断api</a></p>
+<p>　　了解了以上的设置门描述符的函数，我们再看看trap_init()函数：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> __init <span class="title function_">trap_init</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> i;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* 使用了EISA总线 */</span></span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> CONFIG_EISA</span></span><br><span class="line">    <span class="type">void</span> __iomem *p = early_ioremap(<span class="number">0x0FFFD9</span>, <span class="number">4</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (readl(p) == <span class="string">&#x27;E&#x27;</span> + (<span class="string">&#x27;I&#x27;</span>&lt;&lt;<span class="number">8</span>) + (<span class="string">&#x27;S&#x27;</span>&lt;&lt;<span class="number">16</span>) + (<span class="string">&#x27;A&#x27;</span>&lt;&lt;<span class="number">24</span>))</span><br><span class="line">        EISA_bus = <span class="number">1</span>;</span><br><span class="line">    early_iounmap(p, <span class="number">4</span>);</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* Interrupts/Exceptions */</span></span><br><span class="line"><span class="comment">//enum &#123;</span></span><br><span class="line"><span class="comment">//    X86_TRAP_DE = 0,    /*  0, 除0操作 Divide-by-zero */</span></span><br><span class="line"><span class="comment">//    X86_TRAP_DB,        /*  1, 调试使用 Debug */</span></span><br><span class="line"><span class="comment">//    X86_TRAP_NMI,        /*  2, 非屏蔽中断 Non-maskable Interrupt */</span></span><br><span class="line"><span class="comment">//    X86_TRAP_BP,        /*  3, 断点 Breakpoint */</span></span><br><span class="line"><span class="comment">//    X86_TRAP_OF,        /*  4, 溢出 Overflow */</span></span><br><span class="line"><span class="comment">//    X86_TRAP_BR,        /*  5, 越界异常 Bound Range Exceeded */</span></span><br><span class="line"><span class="comment">//    X86_TRAP_UD,        /*  6, 无效操作码 Invalid Opcode */</span></span><br><span class="line"><span class="comment">//    X86_TRAP_NM,        /*  7, 无效设备 Device Not Available */</span></span><br><span class="line"><span class="comment">//    X86_TRAP_DF,        /*  8, 双重故障 Double Fault */</span></span><br><span class="line"><span class="comment">//    X86_TRAP_OLD_MF,    /*  9, 协处理器段超限 Coprocessor Segment Overrun */</span></span><br><span class="line"><span class="comment">//    X86_TRAP_TS,        /* 10, 无效任务状态段(TSS) Invalid TSS */</span></span><br><span class="line"><span class="comment">//    X86_TRAP_NP,        /* 11, 段不存在 Segment Not Present */</span></span><br><span class="line"><span class="comment">//    X86_TRAP_SS,        /* 12, 栈段错误 Stack Segment Fault */</span></span><br><span class="line"><span class="comment">//    X86_TRAP_GP,        /* 13, 保护错误 General Protection Fault */</span></span><br><span class="line"><span class="comment">//    X86_TRAP_PF,        /* 14, 页错误 Page Fault */</span></span><br><span class="line"><span class="comment">//    X86_TRAP_SPURIOUS,    /* 15, 欺骗性中断 Spurious Interrupt */</span></span><br><span class="line"><span class="comment">//    X86_TRAP_MF,        /* 16, X87 浮点数异常 Floating-Point Exception */</span></span><br><span class="line"><span class="comment">//    X86_TRAP_AC,        /* 17, 对齐检查 Alignment Check */</span></span><br><span class="line"><span class="comment">//    X86_TRAP_MC,        /* 18, 设备检查 Machine Check */</span></span><br><span class="line"><span class="comment">//    X86_TRAP_XF,        /* 19, SIMD 浮点数异常 Floating-Point Exception */</span></span><br><span class="line"><span class="comment">//    X86_TRAP_IRET = 32,    /* 32, 汇编指令异常 IRET Exception */</span></span><br><span class="line"><span class="comment">//&#125;;</span></span><br><span class="line"></span><br><span class="line">    set_intr_gate(X86_TRAP_DE, divide_error);</span><br><span class="line">    <span class="comment">/* 在32位系统上其效果等同于 set_intr_gate  */</span></span><br><span class="line">    set_intr_gate_ist(X86_TRAP_NMI, &amp;nmi, NMI_STACK);</span><br><span class="line">    <span class="comment">/* int4 can be called from all */</span></span><br><span class="line">    set_system_intr_gate(X86_TRAP_OF, &amp;overflow);</span><br><span class="line">    set_intr_gate(X86_TRAP_BR, bounds);</span><br><span class="line">    set_intr_gate(X86_TRAP_UD, invalid_op);</span><br><span class="line">    set_intr_gate(X86_TRAP_NM, device_not_available);</span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> CONFIG_X86_32</span></span><br><span class="line">    set_task_gate(X86_TRAP_DF, GDT_ENTRY_DOUBLEFAULT_TSS);</span><br><span class="line"><span class="meta">#<span class="keyword">else</span></span></span><br><span class="line">    set_intr_gate_ist(X86_TRAP_DF, &amp;double_fault, DOUBLEFAULT_STACK);</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">    set_intr_gate(X86_TRAP_OLD_MF, coprocessor_segment_overrun);</span><br><span class="line">    set_intr_gate(X86_TRAP_TS, invalid_TSS);</span><br><span class="line">    set_intr_gate(X86_TRAP_NP, segment_not_present);</span><br><span class="line">    set_intr_gate(X86_TRAP_SS, stack_segment);</span><br><span class="line">    set_intr_gate(X86_TRAP_GP, general_protection);</span><br><span class="line">    set_intr_gate(X86_TRAP_SPURIOUS, spurious_interrupt_bug);</span><br><span class="line">    set_intr_gate(X86_TRAP_MF, coprocessor_error);</span><br><span class="line">    set_intr_gate(X86_TRAP_AC, alignment_check);</span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> CONFIG_X86_MCE</span></span><br><span class="line">    set_intr_gate_ist(X86_TRAP_MC, &amp;machine_check, MCE_STACK);</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">    set_intr_gate(X86_TRAP_XF, simd_coprocessor_error);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 将前32个中断号都设置为已使用状态 */</span></span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; FIRST_EXTERNAL_VECTOR; i++)</span><br><span class="line">        set_bit(i, used_vectors);</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> CONFIG_IA32_EMULATION</span></span><br><span class="line">    <span class="comment">/* 设置0x80系统调用的系统中断门 */</span></span><br><span class="line">    set_system_intr_gate(IA32_SYSCALL_VECTOR, ia32_syscall);</span><br><span class="line">    set_bit(IA32_SYSCALL_VECTOR, used_vectors);</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> CONFIG_X86_32</span></span><br><span class="line">    <span class="comment">/* 设置0x80系统调用的系统门 */</span></span><br><span class="line">    set_system_trap_gate(SYSCALL_VECTOR, &amp;system_call);</span><br><span class="line">    set_bit(SYSCALL_VECTOR, used_vectors);</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Set the IDT descriptor to a fixed read-only location, so that the</span></span><br><span class="line"><span class="comment">     * &quot;sidt&quot; instruction will not leak the location of the kernel, and</span></span><br><span class="line"><span class="comment">     * to defend the IDT against arbitrary memory write vulnerabilities.</span></span><br><span class="line"><span class="comment">     * It will be reloaded in cpu_init() */</span></span><br><span class="line">    <span class="comment">/* 将中断向量表设置在一个固定的只读的位置,以便“sidt”指令不会泄漏内核的位置,和保护中断向量表可以处于任意内存写的漏洞。它将会在 cpu_init() 中被加载到idtr寄存器 */</span></span><br><span class="line">    __set_fixmap(FIX_RO_IDT, __pa_symbol(idt_table), PAGE_KERNEL_RO);</span><br><span class="line">    idt_descr.address = fix_to_virt(FIX_RO_IDT);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 执行CPU的初始化，对于中断而言，在 cpu_init() 中主要是将 idt_descr 放入idtr寄存器中 */</span></span><br><span class="line">    cpu_init();</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* x86_init是一个定义了很多x86体系上的初始化操作，这里执行的另一个trap_init()函数为空函数，什么都不做 */</span></span><br><span class="line">    x86_init.irqs.trap_init();</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> CONFIG_X86_64</span></span><br><span class="line">    <span class="comment">/* 64位操作 */</span></span><br><span class="line">    <span class="comment">/* 将 idt_table 复制到 debug_idt_table 中 */</span></span><br><span class="line">    <span class="built_in">memcpy</span>(&amp;debug_idt_table, &amp;idt_table, IDT_ENTRIES * <span class="number">16</span>);</span><br><span class="line">    set_nmi_gate(X86_TRAP_DB, &amp;debug);</span><br><span class="line">    set_nmi_gate(X86_TRAP_BP, &amp;int3);</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在代码中，used_vectors变量是一个bitmap，它用于记录中断向量表中哪些中断已经被系统注册和使用，哪些未被注册使用。trap_init()已经完成了异常和陷阱的初始化。对于linux而言，中断号0<del>19是专门用于陷阱和故障使用的，以上代码也表明了这一点，而20</del>31一般是intel用于保留的。而我们的外部IRQ线使用的中断为32<del>255(代码中32号中断被用作汇编指令异常中断)。所以，在trap_init()代码中，专门对0</del>19号中断的门描述符进行了初始化，最后将新的中断向量表起始地址放入idtr寄存器中。在trap_init()中我们看到每个异常和陷阱都有他们自己的处理函数，不过它们的处理函数的处理方式都大同小异，如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">#代码地址：arch/x86/kernel/entry_32.S</span><br><span class="line"></span><br><span class="line"># <span class="number">11</span>号异常处理函数入口</span><br><span class="line">ENTRY(segment_not_present)</span><br><span class="line">    RING0_EC_FRAME</span><br><span class="line">    ASM_CLAC</span><br><span class="line">    pushl_cfi $do_segment_not_present</span><br><span class="line">    jmp error_code</span><br><span class="line">    CFI_ENDPROC</span><br><span class="line"><span class="title function_">END</span><span class="params">(segment_not_present)</span></span><br><span class="line"></span><br><span class="line"># 12号异常处理函数入口</span><br><span class="line"><span class="title function_">ENTRY</span><span class="params">(stack_segment)</span></span><br><span class="line">    RING0_EC_FRAME</span><br><span class="line">    ASM_CLAC</span><br><span class="line">    pushl_cfi $do_stack_segment</span><br><span class="line">    jmp error_code</span><br><span class="line">    CFI_ENDPROC</span><br><span class="line"><span class="title function_">END</span><span class="params">(stack_segment)</span></span><br><span class="line"></span><br><span class="line"># 17号异常处理函数入口</span><br><span class="line"><span class="title function_">ENTRY</span><span class="params">(alignment_check)</span></span><br><span class="line">    RING0_EC_FRAME</span><br><span class="line">    ASM_CLAC</span><br><span class="line">    pushl_cfi $do_alignment_check</span><br><span class="line">    jmp error_code</span><br><span class="line">    CFI_ENDPROC</span><br><span class="line"><span class="title function_">END</span><span class="params">(alignment_check)</span></span><br><span class="line"></span><br><span class="line"># 0号异常处理函数入口</span><br><span class="line"><span class="title function_">ENTRY</span><span class="params">(divide_error)</span></span><br><span class="line">    RING0_INT_FRAME</span><br><span class="line">    ASM_CLAC</span><br><span class="line">    pushl_cfi $0            <span class="meta"># no <span class="keyword">error</span> code</span></span><br><span class="line">    pushl_cfi $do_divide_error</span><br><span class="line">    jmp error_code</span><br><span class="line">    CFI_ENDPROC</span><br><span class="line"><span class="title function_">END</span><span class="params">(divide_error)</span></span><br></pre></td></tr></table></figure>
+
+<p>在trap_init()函数中调用了cpu_init()函数，在此函数中会将新的中断向量表地址放入idtr寄存器中，而具体内核是如何实现的呢，之前已经说明，idtr寄存器的低16位保存的是中断向量表长度，高32位保存的是中断向量表基地址，相对于的，内核定义了一个struct desc_ptr结构专门用于保存idtr寄存器内容，其如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">/* 代码地址：arch/x86/include/asm/Desc_defs.h */</span><br><span class="line">struct desc_ptr &#123;</span><br><span class="line">    unsigned short size;</span><br><span class="line">    unsigned long address;</span><br><span class="line">&#125; __attribute__((packed)) ;</span><br><span class="line"></span><br><span class="line">/* 代码地址：arch/x86/kernel/cpu/Common.c */</span><br><span class="line">/* 专门用于保存需要写入idtr寄存器值的变量，这里可以看出，中断向量表长度为256 * 16 - 1，地址为idt_table */</span><br><span class="line">struct desc_ptr idt_descr = &#123; NR_VECTORS * 16 - 1, (unsigned long) idt_table &#125;;</span><br></pre></td></tr></table></figure>
+<p>在cpu_init()中，会调用load_current_idt()函数进行写入，如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">void</span> <span class="title function_">load_current_idt</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (is_debug_idt_enabled())</span><br><span class="line">        <span class="comment">/* 开启了中断调试，用的是 debug_idt_descr 和 debug_idt_table */</span></span><br><span class="line">        load_debug_idt();</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (is_trace_idt_enabled())</span><br><span class="line">        <span class="comment">/* 开启了中断跟踪，用的是 trace_idt_descr 和 trace_idt_table */</span></span><br><span class="line">        load_trace_idt();</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="comment">/* 普通情况，用的是 idt_descr 和 idt_table */</span></span><br><span class="line">        load_idt((<span class="type">const</span> <span class="keyword">struct</span> desc_ptr *)&amp;idt_descr);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* load_idt()的定义 */</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> load_idt(dtr)                native_load_idt(dtr)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* native_load_idt()的定义 */</span></span><br><span class="line"><span class="type">static</span> <span class="keyword">inline</span> <span class="type">void</span> <span class="title function_">native_load_idt</span><span class="params">(<span class="type">const</span> <span class="keyword">struct</span> desc_ptr *dtr)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(<span class="string">&quot;lidt %0&quot;</span>::<span class="string">&quot;m&quot;</span> (*dtr))</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="初始化中断"><a href="#初始化中断" class="headerlink" title="初始化中断"></a>初始化中断</h3><p>内核是在异常和陷阱初始化完成的情况下才会进行中断的初始化，中断的初始化也是处于start_kernel()函数中，分为两个部分，分别是early_irq_init()和init_IRQ()。early_irq_init()是第一步的初始化，其工作主要是跟硬件无关的一些初始化，比如一些变量的初始化，分配必要的内存等。init_IRQ()是第二步，其主要就是关于硬件部分的初始化了。</p>
+<p>　　首先我们先看看中断描述符表irq_desc[NR_IRQS]：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/* 中断描述符表 */</span></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">irq_desc</span> <span class="title">irq_desc</span>[<span class="title">NR_IRQS</span>] __<span class="title">cacheline_aligned_in_smp</span> =</span> &#123;</span><br><span class="line">    [<span class="number">0</span> ... NR_IRQS<span class="number">-1</span>] = &#123;</span><br><span class="line">        .handle_irq    = handle_bad_irq,</span><br><span class="line">        .depth        = <span class="number">1</span>,</span><br><span class="line">        .lock        = __RAW_SPIN_LOCK_UNLOCKED(irq_desc-&gt;lock),</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，irq_desc数组有NR_IRQS个元素，NR_IRQS并不是256-32，实际上，虽然中断向量表中一共有256项(前32项用作异常和intel保留)，但并不是所有中断向量都会使用到，所以中断描述符表也不一定是256-32项，CPU可以使用多少个中断是由中断控制器(PIC、APIC)或者内核配置决定的，我们看看NR_IRQS的定义：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">/* IOAPIC为外部中断控制器 */</span><br><span class="line">#ifdef CONFIG_X86_IO_APIC</span><br><span class="line">#define CPU_VECTOR_LIMIT        (64 * NR_CPUS)</span><br><span class="line">#define NR_IRQS                    \</span><br><span class="line">    (CPU_VECTOR_LIMIT &gt; IO_APIC_VECTOR_LIMIT ?    \</span><br><span class="line">        (NR_VECTORS + CPU_VECTOR_LIMIT)  :    \</span><br><span class="line">        (NR_VECTORS + IO_APIC_VECTOR_LIMIT))</span><br><span class="line">#else /* !CONFIG_X86_IO_APIC: NR_IRQS_LEGACY = 16 */</span><br><span class="line">#define NR_IRQS            NR_IRQS_LEGACY</span><br><span class="line">#endif</span><br></pre></td></tr></table></figure>
+
+<p>这时我们可以先看看early_irq_init()函数：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> __init <span class="title function_">early_irq_init</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> count, i, node = first_online_node;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">irq_desc</span> *<span class="title">desc</span>;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 初始化irq_default_affinity变量，此变量用于设置中断默认的CPU亲和力 */</span></span><br><span class="line">    init_irq_default_affinity();</span><br><span class="line"></span><br><span class="line">    printk(KERN_INFO <span class="string">&quot;NR_IRQS:%d\n&quot;</span>, NR_IRQS);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 指向中断描述符表irq_desc */</span></span><br><span class="line">    desc = irq_desc;</span><br><span class="line">    <span class="comment">/* 获取中断描述符表长度 */</span></span><br><span class="line">    count = ARRAY_SIZE(irq_desc);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; count; i++) &#123;</span><br><span class="line">        <span class="comment">/* 为kstat_irqs分配内存，每个CPU有自己独有的kstat_irqs数据，此数据用于统计 */</span></span><br><span class="line">        desc[i].kstat_irqs = alloc_percpu(<span class="type">unsigned</span> <span class="type">int</span>);</span><br><span class="line">        <span class="comment">/* 为 desc-&gt;irq_data.affinity 和 desc-&gt;pending_mask 分配内存 */</span></span><br><span class="line">        alloc_masks(&amp;desc[i], GFP_KERNEL, node);</span><br><span class="line">        <span class="comment">/* 初始化中断描述符的锁 */</span></span><br><span class="line">        raw_spin_lock_init(&amp;desc[i].lock);</span><br><span class="line">        <span class="comment">/* 设置中断描述符的锁所属的类，此类用于防止死锁 */</span></span><br><span class="line">        lockdep_set_class(&amp;desc[i].lock, &amp;irq_desc_lock_class);</span><br><span class="line">        <span class="comment">/* 一些变量的初始化 */</span></span><br><span class="line">        desc_set_defaults(i, &amp;desc[i], node, <span class="literal">NULL</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> arch_early_irq_init();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>更多的初始化在desc_set_defaults()函数中：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">void</span> <span class="title function_">desc_set_defaults</span><span class="params">(<span class="type">unsigned</span> <span class="type">int</span> irq, <span class="keyword">struct</span> irq_desc *desc, <span class="type">int</span> node,</span></span><br><span class="line"><span class="params">        <span class="keyword">struct</span> module *owner)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> cpu;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 中断号 */</span></span><br><span class="line">    desc-&gt;irq_data.irq = irq;</span><br><span class="line">    <span class="comment">/* 中断描述符的中断控制器芯片为 no_irq_chip  */</span></span><br><span class="line">    desc-&gt;irq_data.chip = &amp;no_irq_chip;</span><br><span class="line">    <span class="comment">/* 中断控制器的私有数据为空 */</span></span><br><span class="line">    desc-&gt;irq_data.chip_data = <span class="literal">NULL</span>;</span><br><span class="line">    desc-&gt;irq_data.handler_data = <span class="literal">NULL</span>;</span><br><span class="line">    desc-&gt;irq_data.msi_desc = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="comment">/* 设置中断状态 desc-&gt;status_use_accessors 为初始化状态_IRQ_DEFAULT_INIT_FLAGS */</span></span><br><span class="line">    irq_settings_clr_and_set(desc, ~<span class="number">0</span>, _IRQ_DEFAULT_INIT_FLAGS);</span><br><span class="line">    <span class="comment">/* 中断默认被禁止，设置 desc-&gt;irq_data-&gt;state_use_accessors = IRQD_IRQ_DISABLED */</span></span><br><span class="line">    irqd_set(&amp;desc-&gt;irq_data, IRQD_IRQ_DISABLED);</span><br><span class="line">    <span class="comment">/* 设置中断处理回调函数为 handle_bad_irq，handle_bad_irq作为默认的回调函数，此函数中基本上不做什么处理，就是在屏幕上打印此中断信息，并且desc-&gt;kstat_irqs++ */</span></span><br><span class="line">    desc-&gt;handle_irq = handle_bad_irq;</span><br><span class="line">    <span class="comment">/* 嵌套深度为1，表示被禁止1次 */</span></span><br><span class="line">    desc-&gt;depth = <span class="number">1</span>;</span><br><span class="line">    <span class="comment">/* 初始化此中断发送次数为0 */</span></span><br><span class="line">    desc-&gt;irq_count = <span class="number">0</span>;</span><br><span class="line">    <span class="comment">/* 无法处理的中断次数为0 */</span></span><br><span class="line">    desc-&gt;irqs_unhandled = <span class="number">0</span>;</span><br><span class="line">    <span class="comment">/* 在/proc/interrupts所显名字为空 */</span></span><br><span class="line">    desc-&gt;name = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="comment">/* owner为空 */</span></span><br><span class="line">    desc-&gt;owner = owner;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">/* 初始化kstat_irqs中每个CPU项都为0 */</span></span><br><span class="line">    for_each_possible_cpu(cpu)</span><br><span class="line">        *per_cpu_ptr(desc-&gt;kstat_irqs, cpu) = <span class="number">0</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">/* SMP系统才使用的初始化，设置</span></span><br><span class="line"><span class="comment">     * desc-&gt;irq_data.node = first_online_node </span></span><br><span class="line"><span class="comment">     * desc-&gt;irq_data.affinity = irq_default_affinity</span></span><br><span class="line"><span class="comment">     * 清除desc-&gt;pending_mask</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    desc_smp_init(desc, node);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>整个early_irq_init()在这里就初始化完毕了，相对来说比较简单，可以说early_irq_init()只是初始化了中断描述符表中的所有元素。</p>
+<p>在看init_IRQ()前需要看看legacy_pic这个变量，它其实就是CPU内部的中断控制器i8259A，定义了与i8259A相关的一些处理函数和中断数量，如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">legacy_pic</span> <span class="title">default_legacy_pic</span> =</span> &#123;</span><br><span class="line">    .nr_legacy_irqs = NR_IRQS_LEGACY,</span><br><span class="line">    .chip  = &amp;i8259A_chip,</span><br><span class="line">    .mask = mask_8259A_irq,</span><br><span class="line">    .unmask = unmask_8259A_irq,</span><br><span class="line">    .mask_all = mask_8259A,</span><br><span class="line">    .restore_mask = unmask_8259A,</span><br><span class="line">    .init = init_8259A,</span><br><span class="line">    .irq_pending = i8259A_irq_pending,</span><br><span class="line">    .make_irq = make_8259A_irq,</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">legacy_pic</span> *<span class="title">legacy_pic</span> =</span> &amp;default_legacy_pic;</span><br></pre></td></tr></table></figure>
+
+<p>在X86体系下，CPU使用的内部中断控制器是i8259A，内核就定义了这个变量进行使用，在init_IRQ()中会将所有的中断描述符的中断控制器芯片指向i8259A，具体我们先看看init_IRQ()代码：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">void __init init_IRQ(void)</span><br><span class="line">&#123;</span><br><span class="line">    int i;</span><br><span class="line"></span><br><span class="line">    /*</span><br><span class="line">     * On cpu 0, Assign IRQ0_VECTOR..IRQ15_VECTOR&#x27;s to IRQ 0..15.</span><br><span class="line">     * If these IRQ&#x27;s are handled by legacy interrupt-controllers like PIC,</span><br><span class="line">     * then this configuration will likely be static after the boot. If</span><br><span class="line">     * these IRQ&#x27;s are handled by more mordern controllers like IO-APIC,</span><br><span class="line">     * then this vector space can be freed and re-used dynamically as the</span><br><span class="line">     * irq&#x27;s migrate etc.</span><br><span class="line">     */</span><br><span class="line">    /* nr_legacy_irqs() 返回 legacy_pic-&gt;nr_legacy_irqs，为16</span><br><span class="line">     * vector_irq是一个int型的数组，长度为中断向量表长，其保存的是中断向量对应的中断号(如果中断向量是异常则没有中断号)</span><br><span class="line">     * i8259A中断控制器使用IRQ0~IRQ15这16个中断号，这里将这16个中断号设置到CPU0的vector_irq数组的0x30~0x3f上。</span><br><span class="line">     */</span><br><span class="line">    for (i = 0; i &lt; nr_legacy_irqs(); i++)</span><br><span class="line">        per_cpu(vector_irq, 0)[IRQ0_VECTOR + i] = i;</span><br><span class="line"></span><br><span class="line">    /* x86_init是一个结构体，里面定义了一组X86体系下的初始化函数 */</span><br><span class="line">    x86_init.irqs.intr_init();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>x86_init.irqs.intr_init()是一个函数指针，其指向native_init_IRQ()，我们可以直接看看native_init_IRQ()：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> __init <span class="title function_">native_init_IRQ</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="type">int</span> i;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* Execute any quirks before the call gates are initialised: */</span></span><br><span class="line">    <span class="comment">/* 这里又是执行x86_init结构中的初始化函数，pre_vector_init()指向 init_ISA_irqs  */</span></span><br><span class="line">    x86_init.irqs.pre_vector_init();</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 初始化中断向量表中的中断控制器中默认的一些中断门初始化 */</span></span><br><span class="line">    apic_intr_init();</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">     * Cover the whole vector space, no vector can escape</span></span><br><span class="line"><span class="comment">     * us. (some of these will be overridden and become</span></span><br><span class="line"><span class="comment">     * &#x27;special&#x27; SMP interrupts)</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="comment">/* 第一个外部中断，默认是32 */</span></span><br><span class="line">    i = FIRST_EXTERNAL_VECTOR;</span><br><span class="line">    <span class="comment">/* 在used_vectors变量中找出所有没有置位的中断向量，我们知道，在trap_init()中对所有异常和陷阱和系统调用中断都置位了used_vectors，没有置位的都为中断</span></span><br><span class="line"><span class="comment">     * 这里就是对所有中断设置门描述符</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    for_each_clear_bit_from(i, used_vectors, NR_VECTORS) &#123;</span><br><span class="line">        <span class="comment">/* IA32_SYSCALL_VECTOR could be used in trap_init already. */</span></span><br><span class="line">        <span class="comment">/* interrupt[]数组保存的是外部中断的中断门信息</span></span><br><span class="line"><span class="comment">         * 这里将中断向量表中空闲的中断向量设置为中断门,interrupt是一个函数指针数组，其将31~255数组元素指向interrupt[i]函数</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        set_intr_gate(i, interrupt[i - FIRST_EXTERNAL_VECTOR]);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* 如果外部中断控制器需要，则安装一个中断处理例程irq2到中断IRQ2上 */</span></span><br><span class="line">    <span class="keyword">if</span> (!acpi_ioapic &amp;&amp; !of_ioapic &amp;&amp; nr_legacy_irqs())</span><br><span class="line">        setup_irq(<span class="number">2</span>, &amp;irq2);</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> CONFIG_X86_32</span></span><br><span class="line">    <span class="comment">/* 在x86_32模式下，会为当前CPU分配一个中断使用的栈空间 */</span></span><br><span class="line">    irq_ctx_init(smp_processor_id());</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在native_init_IRQ()中，又使用了x86_init变量中的pre_vector_init函数指针，其指向init_ISA_irqs()函数：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> __init <span class="title function_">init_ISA_irqs</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">/* CHIP默认是i8259A_chip */</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">irq_chip</span> *<span class="title">chip</span> =</span> legacy_pic-&gt;chip;</span><br><span class="line">    <span class="type">int</span> i;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">if</span> defined(CONFIG_X86_64) || defined(CONFIG_X86_LOCAL_APIC)</span></span><br><span class="line">    <span class="comment">/* 使用了CPU本地中断控制器 */</span></span><br><span class="line">    <span class="comment">/* 开启virtual wire mode */</span></span><br><span class="line">    init_bsp_APIC();</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">    <span class="comment">/* 其实就是调用init_8259A()，进行8259A硬件的初始化 */</span></span><br><span class="line">    legacy_pic-&gt;init(<span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; nr_legacy_irqs(); i++)</span><br><span class="line">        <span class="comment">/* i为中断号，chip是irq_chip结构，最后是中断回调函数 </span></span><br><span class="line"><span class="comment">         * 设置了中断号i的中断描述符的irq_data.irq_chip = i8259A_chip</span></span><br><span class="line"><span class="comment">         * 设置了中断回调函数为handle_level_irq</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        irq_set_chip_and_handler(i, chip, handle_level_irq);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在init_ISA_irqs()函数中，最主要的就是将内核使用的外部中断的中断描述符的中断控制器设置为i8259A_chip，中断回调函数为handle_level_irq。</p>
+<p>回到native_init_IRQ()函数，当执行完x86_init.irqs.pre_vector_init()之后，会执行apic_initr_init()函数，这个函数中会初始化一些中断控制器特定的中断函数(这些中断游离于之前描述的中断体系中，它们没有自己的中断描述符，中断向量中直接保存它们自己的中断处理函数，类似于异常与陷阱的调用情况)，具体我们看看：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">static</span> <span class="type">void</span> __init <span class="title function_">apic_intr_init</span><span class="params">(<span class="type">void</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">    smp_intr_init();</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> CONFIG_X86_THERMAL_VECTOR</span></span><br><span class="line">    <span class="comment">/* 中断号为: 0xfa，处理函数为: thermal_interrupt */</span></span><br><span class="line">    alloc_intr_gate(THERMAL_APIC_VECTOR, thermal_interrupt);</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> CONFIG_X86_MCE_THRESHOLD</span></span><br><span class="line">    alloc_intr_gate(THRESHOLD_APIC_VECTOR, threshold_interrupt);</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">if</span> defined(CONFIG_X86_64) || defined(CONFIG_X86_LOCAL_APIC)</span></span><br><span class="line">    <span class="comment">/* self generated IPI for local APIC timer */</span></span><br><span class="line">    alloc_intr_gate(LOCAL_TIMER_VECTOR, apic_timer_interrupt);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* IPI for X86 platform specific use */</span></span><br><span class="line">    alloc_intr_gate(X86_PLATFORM_IPI_VECTOR, x86_platform_ipi);</span><br><span class="line"><span class="meta">#<span class="keyword">ifdef</span> CONFIG_HAVE_KVM</span></span><br><span class="line">    <span class="comment">/* IPI for KVM to deliver posted interrupt */</span></span><br><span class="line">    alloc_intr_gate(POSTED_INTR_VECTOR, kvm_posted_intr_ipi);</span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/* IPI vectors for APIC spurious and error interrupts */</span></span><br><span class="line">    alloc_intr_gate(SPURIOUS_APIC_VECTOR, spurious_interrupt);</span><br><span class="line">    alloc_intr_gate(ERROR_APIC_VECTOR, error_interrupt);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/* IRQ work interrupts: */</span></span><br><span class="line"><span class="meta"># <span class="keyword">ifdef</span> CONFIG_IRQ_WORK</span></span><br><span class="line">    alloc_intr_gate(IRQ_WORK_VECTOR, irq_work_interrupt);</span><br><span class="line"><span class="meta"># <span class="keyword">endif</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span></span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在apic_intr_init()函数中，使用了alloc_intr_gate()函数进行处理，这个函数的处理也很简单，置位该中断号所处used_vectors位置，调用set_intr_gate()设置一个中断门描述符。<br>到这里整个中断及异常都已经初始化完成了。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
+<li>在linux系统中，中断一共有256个，0<del>19主要用于异常与陷阱，20</del>31是intel保留，未使用。32~255作为外部中断进行使用。特别的，0x80中断用于系统调用。</li>
+<li>机器上电时，BIOS会初始化一个中断向量表，当交接给linux内核后，内核会自己新建立一个中断向量表，之后完全使用自己的中断向量表，舍弃BIOS的中断向量表。</li>
+<li>在x86上系统默认使用的中断控制器为i8259A。</li>
+<li>中断描述符的初始化过程中，内核会将中断描述符的默认中断控制器设置为i8259A，中断处理回调函数为handle_level_irq()。</li>
+<li>外部中断的门描述的中断处理函数都为interrupt[i]。</li>
+</ul>
+<p>中断的初始化大体上分为两个部分，第一个部分为汇编代码的中断向量表的初次初始化，第二部分为C语言代码，其又分为异常与陷阱的初始化和中断的初始化。如图：</p>
+
+
+<ul>
+<li>在汇编的中断向量表初始化过中，其主要对整个中断向量表进行了初始化，其主要工作是：<ul>
+<li>所有的门描述符的权限位为0;</li>
+<li>所有的门描述符的段选择符为__KERNEL_CS;</li>
+<li>0~31的门描述符的中断处理程序为early_idt_handlers[i](0 &lt;&#x3D; i &lt;&#x3D; 31);</li>
+<li>其他的门描述符的中断处理程序为ignore_int</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>而trap_init()所做的异常与陷阱初始化，就是修改中断向量表的前19项(异常和中断)，主要修改他们的中断处理函数入口和权限位，特殊的如任务门还会设置它们的段选择符。在trap_init()中就已经把所有的异常和陷阱都初始化完成了，并会把新的中断向量表地址放入idtr寄存器，开始使用新的中断向量表。</li>
+<li>在early_irq_init()中，主要工作是初始化整个中断描述符表，将数组中的每个中断描述符中的必要变量进行初始化。</li>
+<li>最后在init_IRQ()中，主要工作是初始化中断向量表中的所有中断门描述符，对于一般的中断，内核将它们的中断处理函数入口设置为interrupt[i]，而一些特殊的中断会在apic_intr_init()中进行设置。之后，init_IRQ()会初始化内部和外部的中断控制器，最后将一般的中断使用的中断控制器设置为i8259A，中断处理函数为handle_level_irq(电平触发)。</li>
+</ul>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">首页</a></li>
+        
+          <li><a href="/categories/">分类</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+          <li><a href="/archives/">归档</a></li>
+        
+          <li><a href="/search/">搜索</a></li>
+        
+          <li><a target="_blank" rel="noopener" href="http://github.com/7qing">项目</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E4%B8%AD%E6%96%AD%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">什么是中断？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%AF%E7%BC%96%E7%A8%8B%E4%B8%AD%E6%96%AD%E6%8E%A7%E5%88%B6%E5%99%A8-PIC%E3%80%81APIC"><span class="toc-number">2.</span> <span class="toc-text">可编程中断控制器(PIC、APIC)</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%AD%E6%96%AD%E6%8E%A7%E5%88%B6%E5%99%A8"><span class="toc-number">2.1.</span> <span class="toc-text">中断控制器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#irq-chip%E7%BB%93%E6%9E%84"><span class="toc-number">2.2.</span> <span class="toc-text">irq_chip结构</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%AD%E6%96%AD%E5%90%91%E9%87%8F%E8%A1%A8-IDT"><span class="toc-number">3.</span> <span class="toc-text">中断向量表(IDT)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Gate-Descriptor"><span class="toc-number">4.</span> <span class="toc-text">Gate_Descriptor</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%AD%E6%96%AD%E5%A4%84%E7%90%86"><span class="toc-number">5.</span> <span class="toc-text">中断处理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%AD%E6%96%AD%E6%8F%8F%E8%BF%B0%E7%AC%A6"><span class="toc-number">6.</span> <span class="toc-text">中断描述符</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%AD%E6%96%AD%E6%9C%8D%E5%8A%A1%E4%BE%8B%E7%A8%8B-ISR"><span class="toc-number">7.</span> <span class="toc-text">中断服务例程(ISR)</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#irq-stat%E6%95%B0%E7%BB%84"><span class="toc-number">8.</span> <span class="toc-text">irq_stat数组</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B3%E7%B3%BB"><span class="toc-number">9.</span> <span class="toc-text">关系</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B7%B1%E5%85%A5Linux%E5%86%85%E6%A0%B8%E4%B8%AD%E7%9A%84%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86"><span class="toc-number">10.</span> <span class="toc-text">深入Linux内核中的中断和异常处理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96%EF%BC%9A"><span class="toc-number">11.</span> <span class="toc-text">初始化：</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%AD%E6%96%ADapi"><span class="toc-number">11.1.</span> <span class="toc-text">中断api</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%AD%E6%96%AD%E5%90%91%E9%87%8F"><span class="toc-number">11.2.</span> <span class="toc-text">初始化中断向量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96%E5%BC%82%E5%B8%B8%E5%90%91%E9%87%8F"><span class="toc-number">11.3.</span> <span class="toc-text">初始化异常向量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%AD%E6%96%AD"><span class="toc-number">11.4.</span> <span class="toc-text">初始化中断</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">11.5.</span> <span class="toc-text">总结</span></a></li></ol></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://7qing.github.io/2024/11/15/Linux/interrupt/%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://7qing.github.io/2024/11/15/Linux/interrupt/%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8/&text=Linux中断和异常"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://7qing.github.io/2024/11/15/Linux/interrupt/%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8/&title=Linux中断和异常"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://7qing.github.io/2024/11/15/Linux/interrupt/%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8/&is_video=false&description=Linux中断和异常"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Linux中断和异常&body=Check out this article: https://7qing.github.io/2024/11/15/Linux/interrupt/%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://7qing.github.io/2024/11/15/Linux/interrupt/%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8/&title=Linux中断和异常"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://7qing.github.io/2024/11/15/Linux/interrupt/%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8/&title=Linux中断和异常"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://7qing.github.io/2024/11/15/Linux/interrupt/%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8/&title=Linux中断和异常"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://7qing.github.io/2024/11/15/Linux/interrupt/%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8/&title=Linux中断和异常"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://7qing.github.io/2024/11/15/Linux/interrupt/%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8/&name=Linux中断和异常&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://7qing.github.io/2024/11/15/Linux/interrupt/%E4%B8%AD%E6%96%AD%E5%92%8C%E5%BC%82%E5%B8%B8/&t=Linux中断和异常"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2024-2025
+    7qing
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/7qing">项目</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板！\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功！");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
