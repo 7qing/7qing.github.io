@@ -6,24 +6,21 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-    <meta name="description" content="我们主要从这五方面入手，了解 linux 内核是如何运行的：   进程管理  内存管理  文件系统  设备驱动程序  网络   第 2 章 从内核出发 可以从内核网站中下载 Linux 的内核源码。可以使用uname -r查看内核 release 版本号。 123git clone git:&#x2F;&#x2F;git.kernel.org&#x2F;pub&#x2F;scm&#x2F;linux&#x2F;kernel&#x2F;git&#x2F;torvalds&#x2F;lin">
+    <meta name="description" content="我们主要从这五方面入手，了解 linux 内核是如何运行的：    进程管理  内存管理  文件系统  设备驱动程序  网络   第 2 章 从内核出发 可以从内核网站中下载 Linux 的内核源码。可以使用uname -r查看内核 release 版本号。 123git clone git:&#x2F;&#x2F;git.kernel.org&#x2F;pub&#x2F;scm&#x2F;linux&#x2F;kernel&#x2F;git&#x2F;torvalds&#x2F;li">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Linux内核设计与实现(1)">
 <meta property="og:url" content="https://7qing.github.io/2024/09/20/linux_kernel/Linux%E5%86%85%E6%A0%B8%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0-1/index.html">
 <meta property="og:site_name" content="7qing-blog">
-<meta property="og:description" content="我们主要从这五方面入手，了解 linux 内核是如何运行的：   进程管理  内存管理  文件系统  设备驱动程序  网络   第 2 章 从内核出发 可以从内核网站中下载 Linux 的内核源码。可以使用uname -r查看内核 release 版本号。 123git clone git:&#x2F;&#x2F;git.kernel.org&#x2F;pub&#x2F;scm&#x2F;linux&#x2F;kernel&#x2F;git&#x2F;torvalds&#x2F;lin">
+<meta property="og:description" content="我们主要从这五方面入手，了解 linux 内核是如何运行的：    进程管理  内存管理  文件系统  设备驱动程序  网络   第 2 章 从内核出发 可以从内核网站中下载 Linux 的内核源码。可以使用uname -r查看内核 release 版本号。 123git clone git:&#x2F;&#x2F;git.kernel.org&#x2F;pub&#x2F;scm&#x2F;linux&#x2F;kernel&#x2F;git&#x2F;torvalds&#x2F;li">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://7qing.github.io/Linux%E5%86%85%E6%A0%B8%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0(1)/%E5%86%85%E6%A0%B8%E7%BB%93%E6%9E%84.png">
-<meta property="og:image" content="https://7qing.github.io/Linux%E5%86%85%E6%A0%B8%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0(1)/%E5%86%85%E6%A0%B8%E7%BB%93%E6%9E%84.png">
 <meta property="article:published_time" content="2024-09-20T07:35:37.000Z">
-<meta property="article:modified_time" content="2025-06-16T06:46:56.000Z">
+<meta property="article:modified_time" content="2025-06-16T06:56:10.000Z">
 <meta property="article:author" content="7qing">
 <meta property="article:tag" content="OS">
 <meta property="article:tag" content="Linux">
 <meta property="article:tag" content="C&#x2F;C++">
 <meta property="article:tag" content="程序设计">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://7qing.github.io/Linux%E5%86%85%E6%A0%B8%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0(1)/%E5%86%85%E6%A0%B8%E7%BB%93%E6%9E%84.png">
     
     
       
@@ -101,6 +98,8 @@
     <br/>
     <span id="actions">
       <ul>
+        
+        <li><a class="icon" aria-label="上一篇" href="/2024/10/20/Linux/process/%E8%BF%9B%E7%A8%8B/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
         
         
         <li><a class="icon" aria-label="下一篇" href="/2024/09/05/CSAPP/CSAPP-%E9%98%85%E8%AF%BB%E7%AC%94%E8%AE%B0-12-%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
@@ -184,7 +183,8 @@
 
   <div class="content e-content" itemprop="articleBody">
     <p>我们主要从这五方面入手，了解 linux 内核是如何运行的：</p>
-<p><img src="/./Linux%E5%86%85%E6%A0%B8%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0(1)/%E5%86%85%E6%A0%B8%E7%BB%93%E6%9E%84.png"></p>
+
+
 <ol>
 <li><p>进程管理</p>
 </li>
@@ -301,7 +301,8 @@
 </tbody></table>
 <p>COPYING 是内个许可证，CREDITS 是内核开发者列表。MAINTAINERS 是维护者列表</p>
 <h4 id="2-3-内核结构"><a href="#2-3-内核结构" class="headerlink" title="2.3 内核结构"></a>2.3 内核结构</h4><p>按功能，Linux 内核可以划分为 5 个不同的部分，每一部分处理一项明确的功能，同时又向其他内核组件提供这项功能。这种结构也反映到内核的源代码上——这 5 部分都形成了自己的子树。</p>
-<p><img src="/./Linux%E5%86%85%E6%A0%B8%E8%AE%BE%E8%AE%A1%E4%B8%8E%E5%AE%9E%E7%8E%B0(1)/%E5%86%85%E6%A0%B8%E7%BB%93%E6%9E%84.png" alt="内核结构"></p>
+
+
 <ol>
 <li><p>进程管理</p>
 </li>
