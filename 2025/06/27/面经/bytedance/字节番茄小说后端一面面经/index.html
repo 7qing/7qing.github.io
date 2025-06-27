@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="鼠鼠第一次投大厂面试,写面经攒人品:  个人介绍(2min) 挖项目(我跟后端相关的项目似乎只有抖音商城(字节跳动青训营),他一直挖我这个项目) 服务是怎么被发现的?(微服务) 假如你这个服务要更新,要更平滑,不让用户感到延迟,你会怎么做?   维护两套环境（蓝：当前生产环境；绿：新版本环境）。 新版本在绿环境测试通过后，切换流量到绿环境，蓝环境作为回滚备用。 优点：零停机，用户无感知切换。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="字节番茄小说后端一面面经">
+<meta property="og:url" content="https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%B8%80%E9%9D%A2%E9%9D%A2%E7%BB%8F/index.html">
+<meta property="og:site_name" content="7qing-blog">
+<meta property="og:description" content="鼠鼠第一次投大厂面试,写面经攒人品:  个人介绍(2min) 挖项目(我跟后端相关的项目似乎只有抖音商城(字节跳动青训营),他一直挖我这个项目) 服务是怎么被发现的?(微服务) 假如你这个服务要更新,要更平滑,不让用户感到延迟,你会怎么做?   维护两套环境（蓝：当前生产环境；绿：新版本环境）。 新版本在绿环境测试通过后，切换流量到绿环境，蓝环境作为回滚备用。 优点：零停机，用户无感知切换。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-06-27T14:40:06.000Z">
+<meta property="article:modified_time" content="2025-06-27T13:00:10.000Z">
+<meta property="article:author" content="7qing">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/logo.png">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/logo.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/logo.png">
+        
+      
+    
+    <!-- title -->
+    <title>字节番茄小说后端一面面经</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="顶部" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/7qing">项目</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%BA%8C%E9%9D%A2%E9%9D%A2%E7%BB%8F/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%B8%80%E9%9D%A2%E9%9D%A2%E7%BB%8F/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%B8%80%E9%9D%A2%E9%9D%A2%E7%BB%8F/&text=字节番茄小说后端一面面经"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%B8%80%E9%9D%A2%E9%9D%A2%E7%BB%8F/&title=字节番茄小说后端一面面经"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%B8%80%E9%9D%A2%E9%9D%A2%E7%BB%8F/&is_video=false&description=字节番茄小说后端一面面经"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=字节番茄小说后端一面面经&body=Check out this article: https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%B8%80%E9%9D%A2%E9%9D%A2%E7%BB%8F/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%B8%80%E9%9D%A2%E9%9D%A2%E7%BB%8F/&title=字节番茄小说后端一面面经"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%B8%80%E9%9D%A2%E9%9D%A2%E7%BB%8F/&title=字节番茄小说后端一面面经"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%B8%80%E9%9D%A2%E9%9D%A2%E7%BB%8F/&title=字节番茄小说后端一面面经"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%B8%80%E9%9D%A2%E9%9D%A2%E7%BB%8F/&title=字节番茄小说后端一面面经"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%B8%80%E9%9D%A2%E9%9D%A2%E7%BB%8F/&name=字节番茄小说后端一面面经&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%B8%80%E9%9D%A2%E9%9D%A2%E7%BB%8F/&t=字节番茄小说后端一面面经"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        字节番茄小说后端一面面经
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">7qing</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2025-06-27T14:40:06.000Z" class="dt-published" itemprop="datePublished">2025-06-27</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/%E9%9D%A2%E7%BB%8F/">面经</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <p>鼠鼠第一次投大厂面试,写面经攒人品:</p>
+<ol>
+<li>个人介绍(2min)</li>
+<li>挖项目(我跟后端相关的项目似乎只有抖音商城(字节跳动青训营),他一直挖我这个项目)</li>
+<li>服务是怎么被发现的?(微服务)</li>
+<li>假如你这个服务要更新,要更平滑,不让用户感到延迟,你会怎么做?</li>
+</ol>
+<ul>
+<li>维护两套环境（蓝：当前生产环境；绿：新版本环境）。</li>
+<li>新版本在绿环境测试通过后，切换流量到绿环境，蓝环境作为回滚备用。</li>
+<li>优点：零停机，用户无感知切换。</li>
+</ul>
+<ol start="5">
+<li><p>你输入一个url的处理过程</p>
+</li>
+<li><p>看你系统比较好,讲一讲linux io复用</p>
+</li>
+<li><p>然后就开始写题了,面试官直接口述,输入一个数字,输出下一个最小的比这个数大的数字(重新排列)leetcode类似的题目是:<a target="_blank" rel="noopener" href="https://leetcode.cn/problems/next-greater-element-iii/">556. 下一个更大元素 III</a>这道题手撕还是相当紧张的,给我撕出来了</p>
+</li>
+<li><p>数据库事务是什么</p>
+</li>
+<li><p>mvcc是什么,怎么实现的?</p>
+</li>
+<li><p>场景题,给你一个番茄小说的书,有十万订阅,如何快而准确的通知到所有订阅的人更新了(这里要求你去用具体的实现)</p>
+</li>
+</ol>
+<p>我这里寄了,后面复盘的时候,应该是使用feed流,这个是用ai写的答案:</p>
+<ul>
+<li><p>推模式 (Fanout-On-Write&#x2F;Writes)：</p>
+<ul>
+<li><strong>操作时机：</strong> 当关键事件（如新章节发布）发生时<strong>立即</strong>执行。</li>
+<li><strong>目标用户：</strong> <strong>核心活跃粉丝（数量相对较小）</strong>。</li>
+<li><strong>动作：</strong> 将事件<strong>直接写入</strong>这些目标粉丝的个人 <strong>收件箱（Inbox Feed）</strong>（一个按时间排序的数据存储）。用户访问自己的 Feed 流时，直接从这个收件箱拉取即可，延迟极低。</li>
+</ul>
+</li>
+<li><p>拉模式 (Fanout-On-Read)：</p>
+<ul>
+<li><strong>操作时机：</strong> 当用户主动请求访问 Feed 流时执行。</li>
+<li><strong>目标用户：</strong> <strong>非核心粉丝（长尾粉丝，数量大）</strong> 或 触发推模式的粉丝，在访问 Feed 时可能需要拉取更长时间范围内的数据。</li>
+<li><strong>动作：</strong> 后端服务在用户请求时，<strong>实时聚合</strong>用户所关注对象（收藏的书籍）的 <strong>发件箱（Outbox Feed）</strong> 数据（包含所有发布事件），按时间排序后返回给用户。这需要访问多个发件箱（每个收藏的书一本）并聚合。</li>
+</ul>
+</li>
+<li><p><strong>「推拉结合」的关键：</strong> <strong>合理区分「核心粉丝」与「长尾粉丝」</strong>，只对核心粉丝进行实时写入。</p>
+<p><strong>关键组件与流程详解：</strong></p>
+<ol>
+<li><strong>事件源 (Event Source)：</strong><ul>
+<li><strong>新章节发布：</strong> 最核心的事件源。携带 <code>bookId</code>, <code>chapterId</code>, <code>publishTimestamp</code>。</li>
+<li><strong>粉丝关系变更：</strong> 用户收藏 (<code>favor</code>) 或取消收藏 (<code>unfavor</code>) 一本书。携带 <code>userId</code>, <code>bookId</code>, <code>action</code>, <code>timestamp</code>。</li>
+</ul>
+</li>
+<li><strong>事件总线 (Event Bus)：</strong><ul>
+<li>使用高吞吐、可靠的消息队列如 Kafka&#x2F;Pulsar。接收上述事件并进行持久化，供下游消费者订阅。</li>
+</ul>
+</li>
+</ol>
+<p>后面是就是针对十万用户的进行<strong>精准界定“核心活跃粉丝” (<code>HotFanCache</code>)：</strong>,查询优化,<strong>高性能存储与分片：</strong></p>
+</li>
+</ul>
+<ol start="10">
+<li>反问,问了业务是什么,技术栈是什么,然后和面试官聊的蛮开心的,面试官夸了基础好,知道稳了</li>
+</ol>
+<p>10min之后,hr通知2面.1面成功.</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">首页</a></li>
+        
+          <li><a href="/categories/">分类</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+          <li><a href="/archives/">归档</a></li>
+        
+          <li><a href="/search/">搜索</a></li>
+        
+          <li><a target="_blank" rel="noopener" href="http://github.com/7qing">项目</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%B8%80%E9%9D%A2%E9%9D%A2%E7%BB%8F/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%B8%80%E9%9D%A2%E9%9D%A2%E7%BB%8F/&text=字节番茄小说后端一面面经"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%B8%80%E9%9D%A2%E9%9D%A2%E7%BB%8F/&title=字节番茄小说后端一面面经"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%B8%80%E9%9D%A2%E9%9D%A2%E7%BB%8F/&is_video=false&description=字节番茄小说后端一面面经"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=字节番茄小说后端一面面经&body=Check out this article: https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%B8%80%E9%9D%A2%E9%9D%A2%E7%BB%8F/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%B8%80%E9%9D%A2%E9%9D%A2%E7%BB%8F/&title=字节番茄小说后端一面面经"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%B8%80%E9%9D%A2%E9%9D%A2%E7%BB%8F/&title=字节番茄小说后端一面面经"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%B8%80%E9%9D%A2%E9%9D%A2%E7%BB%8F/&title=字节番茄小说后端一面面经"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%B8%80%E9%9D%A2%E9%9D%A2%E7%BB%8F/&title=字节番茄小说后端一面面经"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%B8%80%E9%9D%A2%E9%9D%A2%E7%BB%8F/&name=字节番茄小说后端一面面经&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%B8%80%E9%9D%A2%E9%9D%A2%E7%BB%8F/&t=字节番茄小说后端一面面经"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2024-2025
+    7qing
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/7qing">项目</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板！\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功！");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>

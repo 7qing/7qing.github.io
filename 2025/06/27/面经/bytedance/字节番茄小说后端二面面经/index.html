@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="鼠鼠第一次投大厂面试,写面经攒人品:  个人介绍(2min)  对于个人简历上写的linux内核mm模块的patch的问题  问linux上读了哪些部分的源码 问下我理解中的linuxmm部分源码 问我从中学到了什么   问既然我对linux源码这么了解,请问下虚拟内存(?这个问题跟上面难度好像不成正比吧)  接下来我提到了我项目中的dpdk,他具体问了我dpdk是什么?怎么实现的?  dpdk有">
+<meta property="og:type" content="article">
+<meta property="og:title" content="字节番茄小说后端二面面经">
+<meta property="og:url" content="https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%BA%8C%E9%9D%A2%E9%9D%A2%E7%BB%8F/index.html">
+<meta property="og:site_name" content="7qing-blog">
+<meta property="og:description" content="鼠鼠第一次投大厂面试,写面经攒人品:  个人介绍(2min)  对于个人简历上写的linux内核mm模块的patch的问题  问linux上读了哪些部分的源码 问下我理解中的linuxmm部分源码 问我从中学到了什么   问既然我对linux源码这么了解,请问下虚拟内存(?这个问题跟上面难度好像不成正比吧)  接下来我提到了我项目中的dpdk,他具体问了我dpdk是什么?怎么实现的?  dpdk有">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-06-27T12:40:06.000Z">
+<meta property="article:modified_time" content="2025-06-27T13:00:12.000Z">
+<meta property="article:author" content="7qing">
+<meta name="twitter:card" content="summary">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/logo.png">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/logo.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/logo.png">
+        
+      
+    
+    <!-- title -->
+    <title>字节番茄小说后端二面面经</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="顶部" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/7qing">项目</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        <li><a class="icon" aria-label="上一篇" href="/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%B8%80%E9%9D%A2%E9%9D%A2%E7%BB%8F/"><i class="fa-solid fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2024/11/25/Linux/interrupt/%E4%B8%AD%E6%96%AD%E6%97%B6%E5%8F%91%E7%94%9F%E7%9A%84%E6%83%85%E5%86%B5/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%BA%8C%E9%9D%A2%E9%9D%A2%E7%BB%8F/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%BA%8C%E9%9D%A2%E9%9D%A2%E7%BB%8F/&text=字节番茄小说后端二面面经"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%BA%8C%E9%9D%A2%E9%9D%A2%E7%BB%8F/&title=字节番茄小说后端二面面经"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%BA%8C%E9%9D%A2%E9%9D%A2%E7%BB%8F/&is_video=false&description=字节番茄小说后端二面面经"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=字节番茄小说后端二面面经&body=Check out this article: https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%BA%8C%E9%9D%A2%E9%9D%A2%E7%BB%8F/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%BA%8C%E9%9D%A2%E9%9D%A2%E7%BB%8F/&title=字节番茄小说后端二面面经"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%BA%8C%E9%9D%A2%E9%9D%A2%E7%BB%8F/&title=字节番茄小说后端二面面经"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%BA%8C%E9%9D%A2%E9%9D%A2%E7%BB%8F/&title=字节番茄小说后端二面面经"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%BA%8C%E9%9D%A2%E9%9D%A2%E7%BB%8F/&title=字节番茄小说后端二面面经"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%BA%8C%E9%9D%A2%E9%9D%A2%E7%BB%8F/&name=字节番茄小说后端二面面经&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%BA%8C%E9%9D%A2%E9%9D%A2%E7%BB%8F/&t=字节番茄小说后端二面面经"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        字节番茄小说后端二面面经
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">7qing</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2025-06-27T12:40:06.000Z" class="dt-published" itemprop="datePublished">2025-06-27</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/%E9%9D%A2%E7%BB%8F/">面经</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <p>鼠鼠第一次投大厂面试,写面经攒人品:</p>
+<ol>
+<li><p>个人介绍(2min)</p>
+</li>
+<li><p>对于个人简历上写的linux内核mm模块的patch的问题</p>
+<ul>
+<li>问linux上读了哪些部分的源码</li>
+<li>问下我理解中的linuxmm部分源码</li>
+<li>问我从中学到了什么</li>
+</ul>
+</li>
+<li><p>问既然我对linux源码这么了解,请问下虚拟内存(?这个问题跟上面难度好像不成正比吧)</p>
+</li>
+<li><p>接下来我提到了我项目中的dpdk,他具体问了我dpdk是什么?怎么实现的?</p>
+</li>
+<li><p>dpdk有哪些实际的业务?(这个我只在量化上面用过,其他不知道)</p>
+</li>
+<li><p>然后看到我项目中做了cmu的数据库,然后问了我</p>
+</li>
+</ol>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">select * from test  limit 100,100;</span><br><span class="line">select * from test  limit 10000000,100;</span><br></pre></td></tr></table></figure>
+
+<p>哪个快?(看到过类似的题目,只记得答案是无论如何第一个快)</p>
+<ol start="7">
+<li><p>手撕代码,就是区间合并问题,输入[1,3],[7,9],[2,6],输出[1,6],[7,9]</p>
+<p>这个比较常见,直接就开撕了吧,5min做出来了</p>
+</li>
+<li><p>然后继续八股,问我了解http协议吗</p>
+</li>
+<li><p>问我http请求发送后,是怎么接收到处理的全过程(跟前面的url类似的)</p>
+</li>
+<li><p>他们都说tcp是一个面向字节流的协议,你说说是怎么回事</p>
+</li>
+<li><p>tcp连接过多会发生什么</p>
+</li>
+<li><p>你刚刚说了粘包,你能说说他吗?</p>
+</li>
+<li><p>场景题,设计贪吃蛇(要求)</p>
+<ol>
+<li>每五步增加长度1</li>
+<li>不能碰到墙</li>
+<li>只可以上下左右移动</li>
+<li>不能碰到身体</li>
+</ol>
+</li>
+<li><p>反问环节,问昨天为什么我回答的rss订阅为什么不可以,我在这一个小时中的表现,我需要去做哪一些改变.</p>
+</li>
+</ol>
+<p>后续 4min收到通过通知,准备三面</p>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">首页</a></li>
+        
+          <li><a href="/categories/">分类</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+          <li><a href="/archives/">归档</a></li>
+        
+          <li><a href="/search/">搜索</a></li>
+        
+          <li><a target="_blank" rel="noopener" href="http://github.com/7qing">项目</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%BA%8C%E9%9D%A2%E9%9D%A2%E7%BB%8F/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%BA%8C%E9%9D%A2%E9%9D%A2%E7%BB%8F/&text=字节番茄小说后端二面面经"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%BA%8C%E9%9D%A2%E9%9D%A2%E7%BB%8F/&title=字节番茄小说后端二面面经"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%BA%8C%E9%9D%A2%E9%9D%A2%E7%BB%8F/&is_video=false&description=字节番茄小说后端二面面经"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=字节番茄小说后端二面面经&body=Check out this article: https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%BA%8C%E9%9D%A2%E9%9D%A2%E7%BB%8F/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%BA%8C%E9%9D%A2%E9%9D%A2%E7%BB%8F/&title=字节番茄小说后端二面面经"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%BA%8C%E9%9D%A2%E9%9D%A2%E7%BB%8F/&title=字节番茄小说后端二面面经"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%BA%8C%E9%9D%A2%E9%9D%A2%E7%BB%8F/&title=字节番茄小说后端二面面经"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%BA%8C%E9%9D%A2%E9%9D%A2%E7%BB%8F/&title=字节番茄小说后端二面面经"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%BA%8C%E9%9D%A2%E9%9D%A2%E7%BB%8F/&name=字节番茄小说后端二面面经&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://7qing.github.io/2025/06/27/%E9%9D%A2%E7%BB%8F/bytedance/%E5%AD%97%E8%8A%82%E7%95%AA%E8%8C%84%E5%B0%8F%E8%AF%B4%E5%90%8E%E7%AB%AF%E4%BA%8C%E9%9D%A2%E9%9D%A2%E7%BB%8F/&t=字节番茄小说后端二面面经"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2024-2025
+    7qing
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/7qing">项目</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板！\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功！");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
