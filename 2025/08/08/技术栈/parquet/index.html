@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="这里使用原话,Apache Parquet is an open source, column-oriented data file format designed for efficient data storage and retrieval(检索). It provides high performance compression and encoding schemes(计划) to ha">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Parquet格式分析">
+<meta property="og:url" content="https://7qing.github.io/2025/08/08/%E6%8A%80%E6%9C%AF%E6%A0%88/parquet/index.html">
+<meta property="og:site_name" content="7qing-blog">
+<meta property="og:description" content="这里使用原话,Apache Parquet is an open source, column-oriented data file format designed for efficient data storage and retrieval(检索). It provides high performance compression and encoding schemes(计划) to ha">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://7qing.github.io/2025/08/08/%E6%8A%80%E6%9C%AF%E6%A0%88/parquet/file-20250807150132894.png">
+<meta property="og:image" content="https://7qing.github.io/2025/08/08/%E6%8A%80%E6%9C%AF%E6%A0%88/parquet/file-20250808094638593.png">
+<meta property="og:image" content="https://7qing.github.io/2025/08/08/%E6%8A%80%E6%9C%AF%E6%A0%88/parquet/file-20250808095256396.png">
+<meta property="article:published_time" content="2025-08-08T12:40:06.000Z">
+<meta property="article:modified_time" content="2025-08-09T18:19:54.000Z">
+<meta property="article:author" content="7qing">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://7qing.github.io/2025/08/08/%E6%8A%80%E6%9C%AF%E6%A0%88/parquet/file-20250807150132894.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/logo.png">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/logo.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/logo.png">
+        
+      
+    
+    <!-- title -->
+    <title>Parquet格式分析</title>
+    <!-- async scripts -->
+    <!-- Google Analytics -->
+
+
+    <!-- Umami Analytics -->
+
+
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body class="max-width mx-auto px3 ltr">
+    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="目录"><i class="fa-solid fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="顶部" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fa-solid fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/7qing">项目</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2025/08/07/%E6%8A%80%E6%9C%AF%E6%A0%88/Protobuf/"><i class="fa-solid fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fa-solid fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://7qing.github.io/2025/08/08/%E6%8A%80%E6%9C%AF%E6%A0%88/parquet/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://7qing.github.io/2025/08/08/%E6%8A%80%E6%9C%AF%E6%A0%88/parquet/&text=Parquet格式分析"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://7qing.github.io/2025/08/08/%E6%8A%80%E6%9C%AF%E6%A0%88/parquet/&title=Parquet格式分析"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://7qing.github.io/2025/08/08/%E6%8A%80%E6%9C%AF%E6%A0%88/parquet/&is_video=false&description=Parquet格式分析"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Parquet格式分析&body=Check out this article: https://7qing.github.io/2025/08/08/%E6%8A%80%E6%9C%AF%E6%A0%88/parquet/"><i class="fa-solid fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://7qing.github.io/2025/08/08/%E6%8A%80%E6%9C%AF%E6%A0%88/parquet/&title=Parquet格式分析"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://7qing.github.io/2025/08/08/%E6%8A%80%E6%9C%AF%E6%A0%88/parquet/&title=Parquet格式分析"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://7qing.github.io/2025/08/08/%E6%8A%80%E6%9C%AF%E6%A0%88/parquet/&title=Parquet格式分析"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://7qing.github.io/2025/08/08/%E6%8A%80%E6%9C%AF%E6%A0%88/parquet/&title=Parquet格式分析"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://7qing.github.io/2025/08/08/%E6%8A%80%E6%9C%AF%E6%A0%88/parquet/&name=Parquet格式分析&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://7qing.github.io/2025/08/08/%E6%8A%80%E6%9C%AF%E6%A0%88/parquet/&t=Parquet格式分析"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    
+    
+      <div id="toc">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%9F%E7%90%86"><span class="toc-number">1.</span> <span class="toc-text">原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%8C%E5%AD%98-vs-%E5%88%97%E5%AD%98"><span class="toc-number">1.1.</span> <span class="toc-text">行存 vs 列存</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.2.</span> <span class="toc-text">数据模型</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#schema-%E5%8D%8F%E8%AE%AE"><span class="toc-number">1.2.1.</span> <span class="toc-text">schema 协议</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Repetition-and-De%EF%AC%81nition-Levels"><span class="toc-number">1.2.2.</span> <span class="toc-text">Repetition and Deﬁnition Levels</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#striping-and-assembly-%E7%AE%97%E6%B3%95"><span class="toc-number">1.2.3.</span> <span class="toc-text">striping and assembly 算法</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0-Parquet-%E5%B7%A5%E7%A8%8B%E5%85%B7%E4%BD%93%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="toc-number">2.</span> <span class="toc-text">实现 Parquet 工程具体的实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Parquet-%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F%E4%B8%AD%E7%9A%84%E6%9C%AF%E8%AF%AD"><span class="toc-number">2.1.</span> <span class="toc-text">Parquet 文件存储格式中的术语</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B9%B6%E8%A1%8C%E5%8C%96%E6%89%A7%E8%A1%8C%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8D%95%E5%85%83"><span class="toc-number">2.2.</span> <span class="toc-text">并行化执行的基本单元</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Parquet-%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F"><span class="toc-number">2.3.</span> <span class="toc-text">Parquet 文件格式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%83%E6%95%B0%E6%8D%AE%E4%BF%A1%E6%81%AF"><span class="toc-number">2.4.</span> <span class="toc-text">元数据信息</span></a></li></ol></li></ol>
+      </div>
+    
+  </span>
+</div>
+
+    
+    <div class="content index py4 ">
+        
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle p-name" itemprop="name headline">
+        Parquet格式分析
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author p-author h-card" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span class="p-name" itemprop="name">7qing</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2025-08-08T12:40:06.000Z" class="dt-published" itemprop="datePublished">2025-08-08</time>
+        
+      
+    </div>
+
+
+      
+    <div class="article-category">
+        <i class="fa-solid fa-archive"></i>
+        <a class="category-link" href="/categories/%E6%8A%80%E6%9C%AF%E6%A0%88/">技术栈</a>
+    </div>
+
+
+      
+
+    </div>
+  </header>
+  
+
+  <div class="content e-content" itemprop="articleBody">
+    <p>这里使用原话,Apache Parquet is an open source, column-oriented data file format designed for efficient data storage and retrieval(检索). It provides high performance compression and encoding schemes(计划) to handle complex data in bulk and is supported in many programming language and analytics tools.</p>
+<h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><h3 id="行存-vs-列存"><a href="#行存-vs-列存" class="headerlink" title="行存 vs 列存"></a>行存 vs 列存</h3><p>在面向行的存储中，每列的数据依次排成一行，如下所示：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">A1,B1,C1|A2,B2,C2|..............</span><br></pre></td></tr></table></figure>
+
+<p>而在面向列的存储中，相同列的数据存储在一起：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">A1,A2,A3|B1,B2,B3|C1,C2,C3|..........</span><br></pre></td></tr></table></figure>
+
+<p>行存适用于数据整行读取场景，而列存适用于只读取部分列数据（如统计分析等）场景。</p>
+<h3 id="数据模型"><a href="#数据模型" class="headerlink" title="数据模型"></a><strong>数据模型</strong></h3><h4 id="schema-协议"><a href="#schema-协议" class="headerlink" title="schema 协议"></a><strong>schema 协议</strong></h4><blockquote>
+<p>[!NOTE]<br>在数据库中，schema（发音 “skee-muh” 或者“skee-mah”，中文叫模式）是数据库的组织和结构，<em>schemas</em>  和<em>schemata</em>都可以作为复数形式。模式中包含了 schema 对象，可以是<strong>表</strong>(table)、<strong>列</strong>(column)、<strong>数据类型</strong>(data type)、<strong>视图</strong>(view)、<strong>存储过程</strong>(stored procedures)、<strong>关系</strong>(relationships)、<strong>主键</strong>(primary key)、**外键(**foreign key)等。数据库模式可以用一个可视化的图来表示，它显示了数据库对象及其相互之间的关系,表示数据库对象集合</p>
+</blockquote>
+<p>Parquet 采用了一个类似 <a href="Protobuf">Google Protobuf</a>  的协议来描述存储数据的 schema。下面是 Parquet 数据 schema 的一个简单示例：</p>
+<figure class="highlight proto"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">message </span><span class="title class_">AddressBook</span> &#123;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">required</span> <span class="type">string</span> owner;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">repeated</span> <span class="type">string</span> ownerPhoneNumbers;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">repeated</span> <span class="keyword">group</span> contacts &#123;</span><br><span class="line"></span><br><span class="line">	    <span class="keyword">required</span> <span class="type">string</span> name;</span><br><span class="line"></span><br><span class="line">	    <span class="keyword">optional</span> <span class="type">string</span> phoneNumber;</span><br><span class="line"></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="Repetition-and-Deﬁnition-Levels"><a href="#Repetition-and-Deﬁnition-Levels" class="headerlink" title="Repetition and Deﬁnition Levels"></a><strong>Repetition and Deﬁnition Levels</strong></h4><p>对于嵌套格式列存，除了按列拆分进行连续的存储，还需要能够“无损”的保留嵌套格式的结构化信息，以便正确的重建记录。</p>
+<p>只有字段值不能表达清楚记录的结构。给定一个重复字段的两个值，我们不知道此值是在什么“级别”被重复的（比如，这些值是来自两个不同的记录，还是相同的记录中两个重复的值）。同样的，给出一个缺失的可选字段，我们不知道整个路径有多少字段被显示定义了。</p>
+<p>Dremel 提出了 Repetition Level（重复级别）和 Definition Level（定义级别）两个概念，用以解决这个问题。并实现了记录中任意一个字段的恢复都不需要依赖其它字段，且可以对任意字段子集按原始嵌套格式进行重建。</p>
+<img src="/2025/08/08/%E6%8A%80%E6%9C%AF%E6%A0%88/parquet/file-20250807150132894.png" class>
+<p><strong>Repetition levels：用以表示在该字段路径上哪个节点进行了重复**</strong>（at what repeated ﬁeld in the ﬁeld’s path the value has repeated）。</p>
+<p>一个重复字段存储的列值，有可能来自不同记录，也可能由同一记录的不同层级节点重复导致。如上图中的 Code 字段，他在 r1 记录中出现了 3 次，分别是字段 Name 和 Language 重复导致的，其中 Language 先重复了 2 次，Name 字段再重复了 1 次。</p>
+<p>Repetition Levels 采用数字代表重复节点的层级。根据树形层次结构，根结点为 0、下一层级为 1… 依次类推。根结点的重复暗含了记录的重复，也即 r&#x3D;0 代表新记录的开始。required 和 optional 字段不需要 repetition level，只有可重复的字段需要。因此，上述 Code 字段的 repetition levels 范围为 0-2。当我们从上往下扫描 r1 记录，首先遇到 Code 的值是“en-us”，由于它之前没有该字段路径相关的字段出现，因此 r&#x3D;0；其次遇到“en”，是 Language 层级重复导致的，r&#x3D;2；最后遇到“en-gb”，是 Name 层级重复导致的，因此 r&#x3D;1。所以，Code 字段的 repetition levels 在 r1 记录中是“0,2,1”。</p>
+<p>需要注意的是，r1 记录中的第二个重复 Name，由于其不包含 Code 字段，为了区分“en-gb”值是来自记录中的第三个 Name 而不是第二个，我们需要在“en”和“en-gb”之间插入一个值“null”。由于它是 Name 级重复的，因此它的 r&#x3D;1。另外还需要注意一些隐含信息，比如 Code 是 required 字段类型，因此一旦 Code 出现未定义，则隐含表明其上级 Language 也肯定未定义。</p>
+<p><strong>Definition Levels：用以表示该字段路径上有多少可选的字段实际进行了定义（how many ﬁelds in p that could be undeﬁned (because they are optional or repeated) are actually present）。</strong></p>
+<p>光有 Repetition Levels 尚无法完全保留嵌套结构信息，考虑上述图中 r1 记录的 Backward 字段。由于 r1 中未定义 Backward 字段，因此我们插入一个“null”并设置 r&#x3D;0。但 Backward 的上级 Links 字段在 r1 中显式的进行了定义，null 和 r&#x3D;0 无法再表达出这一层信息。因此需要额外再添加 Definition Levels 定义记录可选字段出现的个数，Backward 的路径上出现 1 个可选字段 Links，因此它的 d&#x3D;1。</p>
+<p>有了 Definition Levels 我们就可以清楚的知道该值出现在字段路径的第几层，对未定义字段的 null 和字段实际的值为 null 也能进行区分。只有 optional 和 repeated 字段需要 Definition Levels 定义，因为 required 字段已经隐含了字段肯定被定义（这可以减少 Definition Levels 需要描述的数字，并在一定程度上节省后续的存储空间）。另外一些其他的隐含信息：如果 Definition Levels 小于路径中 optional + repeated 字段的数量，则该字段的值肯定为 null；Definition Levels 的值为 0 隐含了 Repeated Levels 也为 0（路径中没有 optional&#x2F;repeated 字段或整个路径未定义）。</p>
+<h4 id="striping-and-assembly-算法"><a href="#striping-and-assembly-算法" class="headerlink" title="striping and assembly 算法"></a><strong>striping and assembly 算法</strong></h4><p>现在把 Repetition Levels 和 Definition Levels 两个概念一起考虑。<br>…省略先</p>
+<h2 id="实现-Parquet-工程具体的实现"><a href="#实现-Parquet-工程具体的实现" class="headerlink" title="实现 Parquet 工程具体的实现"></a><strong>实现</strong> Parquet 工程具体的实现</h2><h3 id="Parquet-文件存储格式中的术语"><a href="#Parquet-文件存储格式中的术语" class="headerlink" title="Parquet 文件存储格式中的术语"></a><strong>Parquet 文件存储格式中的术语</strong></h3><ul>
+<li>Block (hdfs block)：即指 HDFS Block，Parquet 的设计与 HDFS 完全兼容。Block 是 HDFS 文件存储的基本单位，HDFS 会维护一个 Block 的多个副本。在 Hadoop 1.x 版本中 Block 默认大小 64M，Hadoop 2.x 版本中默认大小为 128M。</li>
+<li>File：HDFS 文件，保存了该文件的元数据信息，但可以不包含实际数据（由 Block 保存）。</li>
+<li>Row group：按照行将数据划分为多个逻辑水平分区。一个 Row group（行组）由每个列的一个列块（Column Chunk）组成。</li>
+<li>Column chunk：一个列的列块，分布在行组当中，并在文件中保证是连续的。</li>
+<li>Page：一个列块切分成多个 Pages（页面），概念上讲，页面是 Parquet 中最小的基础单元（就压缩和编码方面而言）。一个列块中可以有多个类型的页面。</li>
+</ul>
+<h3 id="并行化执行的基本单元"><a href="#并行化执行的基本单元" class="headerlink" title="并行化执行的基本单元"></a><strong>并行化执行的基本单元</strong></h3><ul>
+<li>MapReduce - File&#x2F;Row Group（一个任务对应一个文件或一个行组）</li>
+<li>IO - Column chunk（任务中的 IO 以列块为单位进行读取）</li>
+<li>Encoding&#x2F;Compression - Page（编码格式和压缩一次以一个页面为单位进行）</li>
+</ul>
+<h3 id="Parquet-文件格式"><a href="#Parquet-文件格式" class="headerlink" title="Parquet 文件格式"></a><strong>Parquet 文件格式</strong></h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">4-byte magic number &quot;PAR1&quot;</span><br><span class="line">&lt;Column 1 Chunk 1 + Column Metadata&gt;</span><br><span class="line">&lt;Column 2 Chunk 1 + Column Metadata&gt;</span><br><span class="line">...</span><br><span class="line">&lt;Column N Chunk 1 + Column Metadata&gt;</span><br><span class="line">&lt;Column 1 Chunk 2 + Column Metadata&gt;</span><br><span class="line">&lt;Column 2 Chunk 2 + Column Metadata&gt;</span><br><span class="line">...</span><br><span class="line">&lt;Column N Chunk 2 + Column Metadata&gt;</span><br><span class="line">...</span><br><span class="line">&lt;Column 1 Chunk M + Column Metadata&gt;</span><br><span class="line">&lt;Column 2 Chunk M + Column Metadata&gt;</span><br><span class="line">...</span><br><span class="line">&lt;Column N Chunk M + Column Metadata&gt;</span><br><span class="line">File Metadata 4-byte</span><br><span class="line">length in bytes of file metadata</span><br><span class="line">4-byte magic number &quot;PAR1&quot;</span><br></pre></td></tr></table></figure>
+
+<p>整个文件（表）有 N 个列，划分成了 M 个行组，每个行组都有所有列的一个 Chunk 和其元数据信息。文件的元数据信息存储在数据之后，包含了所有列块元数据信息的起始位置。读取的时候首先从文件末尾读取文件元数据信息，再在其中找到感兴趣的 Column Chunk 信息，并依次读取。文件元数据信息放在文件最后是为了方便数据依序一次性写入。</p>
+<p>具体图像如下:</p>
+<img src="/2025/08/08/%E6%8A%80%E6%9C%AF%E6%A0%88/parquet/file-20250808094638593.png" class>
+
+<h3 id="元数据信息"><a href="#元数据信息" class="headerlink" title="元数据信息"></a><strong>元数据信息</strong></h3><img src="/2025/08/08/%E6%8A%80%E6%9C%AF%E6%A0%88/parquet/file-20250808095256396.png" class>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+        
+          <li><a href="/">首页</a></li>
+        
+          <li><a href="/categories/">分类</a></li>
+        
+          <li><a href="/tags/">tags</a></li>
+        
+          <li><a href="/archives/">归档</a></li>
+        
+          <li><a href="/search/">搜索</a></li>
+        
+          <li><a target="_blank" rel="noopener" href="http://github.com/7qing">项目</a></li>
+        
+      </ul>
+    </div>
+
+    
+    
+      <div id="toc-footer" style="display: none">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%9F%E7%90%86"><span class="toc-number">1.</span> <span class="toc-text">原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%8C%E5%AD%98-vs-%E5%88%97%E5%AD%98"><span class="toc-number">1.1.</span> <span class="toc-text">行存 vs 列存</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.2.</span> <span class="toc-text">数据模型</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#schema-%E5%8D%8F%E8%AE%AE"><span class="toc-number">1.2.1.</span> <span class="toc-text">schema 协议</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Repetition-and-De%EF%AC%81nition-Levels"><span class="toc-number">1.2.2.</span> <span class="toc-text">Repetition and Deﬁnition Levels</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#striping-and-assembly-%E7%AE%97%E6%B3%95"><span class="toc-number">1.2.3.</span> <span class="toc-text">striping and assembly 算法</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0-Parquet-%E5%B7%A5%E7%A8%8B%E5%85%B7%E4%BD%93%E7%9A%84%E5%AE%9E%E7%8E%B0"><span class="toc-number">2.</span> <span class="toc-text">实现 Parquet 工程具体的实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Parquet-%E6%96%87%E4%BB%B6%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F%E4%B8%AD%E7%9A%84%E6%9C%AF%E8%AF%AD"><span class="toc-number">2.1.</span> <span class="toc-text">Parquet 文件存储格式中的术语</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B9%B6%E8%A1%8C%E5%8C%96%E6%89%A7%E8%A1%8C%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8D%95%E5%85%83"><span class="toc-number">2.2.</span> <span class="toc-text">并行化执行的基本单元</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Parquet-%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F"><span class="toc-number">2.3.</span> <span class="toc-text">Parquet 文件格式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%83%E6%95%B0%E6%8D%AE%E4%BF%A1%E6%81%AF"><span class="toc-number">2.4.</span> <span class="toc-text">元数据信息</span></a></li></ol></li></ol>
+      </div>
+    
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://7qing.github.io/2025/08/08/%E6%8A%80%E6%9C%AF%E6%A0%88/parquet/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://7qing.github.io/2025/08/08/%E6%8A%80%E6%9C%AF%E6%A0%88/parquet/&text=Parquet格式分析"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://7qing.github.io/2025/08/08/%E6%8A%80%E6%9C%AF%E6%A0%88/parquet/&title=Parquet格式分析"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://7qing.github.io/2025/08/08/%E6%8A%80%E6%9C%AF%E6%A0%88/parquet/&is_video=false&description=Parquet格式分析"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Parquet格式分析&body=Check out this article: https://7qing.github.io/2025/08/08/%E6%8A%80%E6%9C%AF%E6%A0%88/parquet/"><i class="fa-solid fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://7qing.github.io/2025/08/08/%E6%8A%80%E6%9C%AF%E6%A0%88/parquet/&title=Parquet格式分析"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://7qing.github.io/2025/08/08/%E6%8A%80%E6%9C%AF%E6%A0%88/parquet/&title=Parquet格式分析"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://7qing.github.io/2025/08/08/%E6%8A%80%E6%9C%AF%E6%A0%88/parquet/&title=Parquet格式分析"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://7qing.github.io/2025/08/08/%E6%8A%80%E6%9C%AF%E6%A0%88/parquet/&title=Parquet格式分析"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://7qing.github.io/2025/08/08/%E6%8A%80%E6%9C%AF%E6%A0%88/parquet/&name=Parquet格式分析&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://7qing.github.io/2025/08/08/%E6%8A%80%E6%9C%AF%E6%A0%88/parquet/&t=Parquet格式分析"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fa-solid fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        
+          <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fa-solid fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fa-solid fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fa-solid fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2024-2025
+    7qing
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/categories/">分类</a></li><!--
+     --><!--
+       --><li><a href="/tags/">tags</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     --><!--
+       --><li><a href="/search/">搜索</a></li><!--
+     --><!--
+       --><li><a target="_blank" rel="noopener" href="http://github.com/7qing">项目</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script>
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script>
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板！\">";
+    btn += '<i class="fa-regular fa-clone"></i>';
+    btn += '</span>';
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功！");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+</body>
+</html>
